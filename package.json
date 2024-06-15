@@ -1,0 +1,47 @@
+{
+  "name": "weave-maze-generator",
+  "version": "1.0.0",
+  "type": "module",
+  "module": "./dist/main.bundle.js",
+  "private": true,
+  "scripts": {
+    "clean": "rimraf ./dist ./bin",
+    "dev": "npx tsx src/main.ts",
+    "build": "npm run clean && rollup -c",
+    "run": "node ./dist/main.bundle.js",
+    "pack": "npm pack && shx mkdir -p bin && shx mv *.tgz bin/weave-maze-generator.tgz",
+    "all": "npm run build && npm run pack",
+    "install-global": "npm install -g ./bin/weave-maze-generator.tgz",
+    "uninstall-global": "npm uninstall -g weave-maze-generator",
+    "run-global": "weave-maze-generator"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^26.0.1",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@types/node": "^20.12.2",
+    "rimraf": "^5.0.7",
+    "rollup": "^4.13.0",
+    "rollup-plugin-copy": "^3.5.0",
+    "shx": "^0.3.4",
+    "tslib": "^2.6.2",
+    "tsx": "^4.7.1",
+    "typescript": "^5.4.5"
+  },
+  "files": [
+    "dist"
+  ],
+  "bin": {
+    "weave-maze-generator": "./dist/main.bundle.js"
+  },
+  "dependencies": {
+    "sharp": "^0.33.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/meatfighter/weave-maze-generator"
+  },
+  "keywords": [
+  ],
+  "homepage": "https://meatfighter.com/weave-maze-generator/"
+}
