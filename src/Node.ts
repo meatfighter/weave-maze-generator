@@ -11,7 +11,11 @@ export class Node {
     _south: Node | null = null;
     _west: Node | null = null;
 
-    constructor(public tile: Tile, public nodeType: NodeType) {
+    visitedBy: Node | null = null;
+
+    region = 0;
+
+    constructor(public tile: Tile) {
     }
 
     backup() {

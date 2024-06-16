@@ -1,6 +1,5 @@
 import sharp from 'sharp';
 import { Maze } from '@/Maze';
-import { EAST, LOWER, NORTH, SOUTH, UPPER, WEST } from '@/Constants';
 
 const TILE_SIZE = 16;
 const HALF_TILE_SIZE = TILE_SIZE >> 1;
@@ -24,7 +23,7 @@ export async function saveImage(maze: Maze, filename: string) {
             const tile = maze.tiles[i][j];
 
             if (tile.lower.north || tile.upper.north) {
-                for (let k = HALF_TILE_SIZE - 1; k >= 0; --k) {
+                for (let k = HALF_TILE_SIZE; k >= 0; --k) {
                     setPixel(ox + HALF_TILE_SIZE, oy + k, BLACK);
                 }
             }
@@ -39,7 +38,7 @@ export async function saveImage(maze: Maze, filename: string) {
                 }
             }
             if (tile.lower.west || tile.upper.west) {
-                for (let k = HALF_TILE_SIZE - 1; k >= 0; --k) {
+                for (let k = HALF_TILE_SIZE; k >= 0; --k) {
                     setPixel(ox + k, oy + HALF_TILE_SIZE, BLACK);
                 }
             }

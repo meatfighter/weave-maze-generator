@@ -1,9 +1,8 @@
 import { Node } from '@/Node';
-import { NodeType } from '@/NodeType';
 
 export class Tile {
-    lower = new Node(this, NodeType.LOWER);
-    upper = new Node(this, NodeType.UPPER);
+    lower = new Node(this);
+    upper = new Node(this);
 
     constructor(public x: number, public y: number) {
     }
