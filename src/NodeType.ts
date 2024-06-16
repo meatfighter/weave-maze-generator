@@ -1,0 +1,4 @@
+enum NodeType {
+    LOWER,
+    UPPER,
+}

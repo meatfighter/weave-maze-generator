@@ -1,13 +1,13 @@
 import sharp from 'sharp';
 import { Maze } from '@/Maze';
-import { TileType } from '@/TileType';
+import { EAST, LOWER, NORTH, SOUTH, UPPER, WEST } from '@/Constants';
 
 const TILE_SIZE = 16;
 const HALF_TILE_SIZE = TILE_SIZE >> 1;
 const WHITE = 255;
 const BLACK = 0;
 
-export async function createMazeImage(maze: Maze, filename: string) {
+export async function saveImage(maze: Maze, filename: string) {
 
     const width = TILE_SIZE * maze.width;
     const height = TILE_SIZE * maze.height;
@@ -22,30 +22,32 @@ export async function createMazeImage(maze: Maze, filename: string) {
         for (let j = maze.width - 1; j >= 0; --j) {
             const ox = j * TILE_SIZE;
             const tile = maze.tiles[i][j];
-            if (tile.north) {
+
+            if (tile.lower.north || tile.upper.north) {
                 for (let k = HALF_TILE_SIZE - 1; k >= 0; --k) {
                     setPixel(ox + HALF_TILE_SIZE, oy + k, BLACK);
                 }
             }
-            if (tile.east) {
+            if (tile.lower.east || tile.upper.east) {
                 for (let k = HALF_TILE_SIZE - 1; k >= 0; --k) {
                     setPixel(ox + HALF_TILE_SIZE + k, oy + HALF_TILE_SIZE, BLACK);
                 }
             }
-            if (tile.south) {
+            if (tile.lower.south || tile.upper.south) {
                 for (let k = HALF_TILE_SIZE - 1; k >= 0; --k) {
                     setPixel(ox + HALF_TILE_SIZE, oy + HALF_TILE_SIZE + k, BLACK);
                 }
             }
-            if (tile.west) {
+            if (tile.lower.west || tile.upper.west) {
                 for (let k = HALF_TILE_SIZE - 1; k >= 0; --k) {
                     setPixel(ox + k, oy + HALF_TILE_SIZE, BLACK);
                 }
             }
-            if (tile.tileType === TileType.NORTH_SOUTH_HOPS_EAST_WEST) {
+
+            if (tile.upper.north) {
                 setPixel(ox + HALF_TILE_SIZE + 1, oy + HALF_TILE_SIZE, WHITE);
                 setPixel(ox + HALF_TILE_SIZE - 1, oy + HALF_TILE_SIZE, WHITE);
-            } else if (tile.tileType === TileType.EAST_WEST_HOPS_NORTH_SOUTH) {
+            } else if (tile.upper.east) {
                 setPixel(ox + HALF_TILE_SIZE, oy + HALF_TILE_SIZE + 1, WHITE);
                 setPixel(ox + HALF_TILE_SIZE, oy + HALF_TILE_SIZE - 1, WHITE);
             }

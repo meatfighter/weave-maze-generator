@@ -1,14 +1,19 @@
-import { TileType } from '@/TileType';
-import { NodeState } from '@/NodeState';
+import { Node } from '@/Node';
 
 export class Tile {
-    north = false;
-    east = false;
-    south = false;
-    west = false;
-    tileType = TileType.FLAT;
-    nodeStates = [ NodeState.UNVISITED ];
+    lower = new Node(this, NodeType.LOWER);
+    upper = new Node(this, NodeType.UPPER);
 
     constructor(public x: number, public y: number) {
+    }
+
+    backup() {
+        this.lower.backup();
+        this.upper.backup();
+    }
+
+    restore() {
+        this.lower.restore();
+        this.upper.restore();
     }
 }
