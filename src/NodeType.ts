@@ -1,4 +1,4 @@
-enum NodeType {
+export enum NodeType {
     LOWER,
     UPPER,
 }

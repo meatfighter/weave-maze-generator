@@ -1,4 +1,5 @@
 import { Node } from '@/Node';
+import { NodeType } from '@/NodeType';
 
 export class Tile {
     lower = new Node(this, NodeType.LOWER);

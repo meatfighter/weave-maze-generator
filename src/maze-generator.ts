@@ -1,6 +1,5 @@
 import { Maze } from '@/Maze';
 import { Tile } from '@/Tile';
-import { EAST, LOWER, NORTH, SOUTH, UPPER, WEST } from '@/Constants';
 
 function addCross(maze: Maze, tile: Tile): boolean {
 
@@ -48,34 +47,36 @@ function addCross(maze: Maze, tile: Tile): boolean {
     } else {
         // east-west hops north-south
 
-        if (tile.lower.north) {
-            tile.lower.north.south = tile.upper;
-            tile.upper.north = tile.lower.north;
-            tile.lower.north = null;
+        if (tile.lower.east) {
+            tile.lower.east.west = tile.upper;
+            tile.upper.east = tile.lower.east;
+            tile.lower.east = null;
         } else {
-            northTile.lower.south = tile.upper;
-            tile.upper.north = northTile.lower;
+            eastTile.lower.west = tile.upper;
+            tile.upper.east = eastTile.lower;
         }
 
-        if (tile.lower.south) {
-            tile.lower.south.north = tile.upper;
-            tile.upper.south = tile.lower.south;
-            tile.lower.south = null;
+        if (tile.lower.west) {
+            tile.lower.west.east = tile.upper;
+            tile.upper.west = tile.lower.west;
+            tile.lower.west = null;
         } else {
-            southTile.lower.north = tile.upper;
-            tile.upper.south = southTile.lower;
+            westTile.lower.east = tile.upper;
+            tile.upper.west = westTile.lower;
         }
 
-        if (!tile.lower.east) {
-            tile.lower.east = eastTile.lower;
-            eastTile.lower.west = tile.lower;
+        if (!tile.lower.north) {
+            tile.lower.north = northTile.lower;
+            northTile.lower.south = tile.lower;
         }
 
-        if (!tile.lower.west) {
-            tile.lower.west = westTile.lower;
-            westTile.lower.east = tile.lower;
+        if (!tile.lower.south) {
+            tile.lower.south = southTile.lower;
+            southTile.lower.north = tile.lower;
         }
     }
+
+    return true; // TODO
 }
 
 function addCrosses(maze: Maze, crossFraction: number) {
