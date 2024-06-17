@@ -1,29 +1,7 @@
 import { Maze } from '@/Maze';
 import { Tile } from '@/Tile';
 import { Node } from '@/Node';
-
-function generatePermutations(arr: number[]): number[][] {
-    const result: number[][] = [];
-
-    function permute(n: number) {
-        if (n === 1) {
-            result.push(arr.slice());
-        } else {
-            for (let i = 0; i < n; i++) {
-                permute(n - 1);
-                if ((n & 1) === 0) {
-                    [ arr[i], arr[n - 1] ] = [ arr[n - 1], arr[i] ];
-                } else {
-                    [ arr[0], arr[n - 1] ] = [ arr[n - 1], arr[0] ];
-                }
-            }
-        }
-    }
-
-    permute(arr.length);
-
-    return result;
-}
+import { generatePermutations, shuffleArray } from '@/arrays';
 
 function assignRegion(region: number, seed: Node, stack: Node[]): Node[] {
 
@@ -38,22 +16,22 @@ function assignRegion(region: number, seed: Node, stack: Node[]): Node[] {
             if (!node) {
                 break;
             }
-            if (node.north && node.north.region === 0) {
+            if (node.north && node.north.region < 0) {
                 node.north.region = region;
                 stack.push(node.north);
                 nodes.push(node.north);
             }
-            if (node.east && node.east.region === 0) {
+            if (node.east && node.east.region < 0) {
                 node.east.region = region;
                 stack.push(node.east);
                 nodes.push(node.east);
             }
-            if (node.south && node.south.region === 0) {
+            if (node.south && node.south.region < 0) {
                 node.south.region = region;
                 stack.push(node.south);
                 nodes.push(node.south);
             }
-            if (node.west && node.west.region === 0) {
+            if (node.west && node.west.region < 0) {
                 node.west.region = region;
                 stack.push(node.west);
                 nodes.push(node.west);
@@ -68,15 +46,15 @@ function assignRegion(region: number, seed: Node, stack: Node[]): Node[] {
 
 function assignRegions(maze: Maze, stack: Node[]): Node[][] {
     const nodes: Node[][] = [ [] ];
-    let id = 1;
+    let id = 0;
     for (let i = maze.height - 1; i >= 0; --i) {
         for (let j = maze.width - 1; j >= 0; --j) {
             const tile = maze.tiles[i][j];
-            if (tile.lower.region === 0) {
+            if (tile.lower.region < 0) {
                 nodes[id] = assignRegion(id, tile.lower, stack);
                 ++id;
             }
-            if (tile.upper.region === 0) {
+            if (tile.upper.region < 0) {
                 nodes[id] = assignRegion(id++, tile.upper, stack);
                 ++id;
             }
@@ -263,7 +241,17 @@ function mergeRegions(region1: number, region2: number, regions: Node[][]) {
     regions[region1].length = 0;
 }
 
-function createSpanningTree(maze: Maze, nodes: Node[], permutations: number[][], regions: Node[][]) {
+function moveToEnd(nodes: Node[], node: Node) {
+    const index = nodes.indexOf(node);
+    if (index < 0 || index === nodes.length - 1) {
+        return;
+    }
+    nodes.splice(index, 1);
+    nodes.push(node);
+}
+
+function createSpanningTree(maze: Maze, nodes: Node[], permutations: number[][], regions: Node[][],
+                            longCorridors: boolean) {
 
     const maxX = maze.width - 1;
     const maxY = maze.height - 1;
@@ -276,13 +264,15 @@ function createSpanningTree(maze: Maze, nodes: Node[], permutations: number[][],
             }
         }
     }
+    shuffleArray(nodes);
 
     outer: while (nodes.length > 0) {
-        const index = Math.floor(nodes.length * Math.random());
+        const index = longCorridors ? nodes.length - 1 : Math.floor(nodes.length * Math.random());
         const node = nodes[index];
-        if (!node) {
-            break;
+        if (longCorridors) {
+            moveToEnd(nodes, node);
         }
+
         const tile = node.tile;
         const permutation = permutations[Math.floor(permutations.length * Math.random())];
         for (let i = permutation.length - 1; i >= 0; --i) {
@@ -298,6 +288,9 @@ function createSpanningTree(maze: Maze, nodes: Node[], permutations: number[][],
                     }
                     northTile.lower.south = node;
                     node.north = northTile.lower;
+                    if (longCorridors) {
+                        moveToEnd(nodes, node.north);
+                    }
                     mergeRegions(northTile.lower.region, node.region, regions);
                     continue outer;
                 }
@@ -312,6 +305,9 @@ function createSpanningTree(maze: Maze, nodes: Node[], permutations: number[][],
                     }
                     eastTile.lower.west = node;
                     node.east = eastTile.lower;
+                    if (longCorridors) {
+                        moveToEnd(nodes, node.east);
+                    }
                     mergeRegions(eastTile.lower.region, node.region, regions);
                     continue outer;
                 }
@@ -326,6 +322,9 @@ function createSpanningTree(maze: Maze, nodes: Node[], permutations: number[][],
                     }
                     southTile.lower.north = node;
                     node.south = southTile.lower;
+                    if (longCorridors) {
+                        moveToEnd(nodes, node.south);
+                    }
                     mergeRegions(southTile.lower.region, node.region, regions);
                     continue outer;
                 }
@@ -340,22 +339,30 @@ function createSpanningTree(maze: Maze, nodes: Node[], permutations: number[][],
                     }
                     westTile.lower.east = node;
                     node.west = westTile.lower;
+                    if (longCorridors) {
+                        moveToEnd(nodes, node.west);
+                    }
                     mergeRegions(westTile.lower.region, node.region, regions);
                     continue outer;
                 }
             }
         }
-        nodes.splice(index, 1);
+
+        if (longCorridors) {
+            nodes.pop();
+        } else {
+            nodes.splice(index, 1);
+        }
     }
 }
 
-export function generateMaze(width: number, height: number, crossFraction: number): Maze {
+export function generateMaze(width: number, height: number, crossFraction: number, longCorridors: boolean): Maze {
     const maze = new Maze(width, height);
     const permutations = generatePermutations([ 0, 1, 2, 3]);
     const stack: Node[] = [];
     addCrosses(maze, crossFraction, stack);
     const regions = assignRegions(maze, stack);
-    createSpanningTree(maze, stack, permutations, regions);
+    createSpanningTree(maze, stack, permutations, regions, longCorridors);
     return maze;
 }
 

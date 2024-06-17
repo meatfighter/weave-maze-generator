@@ -13,7 +13,7 @@ export class Node {
 
     visitedBy: Node | null = null;
 
-    region = 0;
+    region = -1;
 
     constructor(public tile: Tile) {
     }
