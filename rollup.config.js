@@ -13,6 +13,7 @@ export default [
         },
         external: [
             'sharp',
+            'canvas',
         ],
         plugins: [
             resolve(),
