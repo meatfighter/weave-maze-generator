@@ -356,6 +356,11 @@ function createSpanningTree(maze: Maze, nodes: Node[], permutations: number[][],
     }
 }
 
+function createTerminals(maze: Maze) {
+    maze.tiles[maze.height - 1][0].lower.west = maze.tiles[maze.height - 1][0].lower;
+    maze.tiles[0][maze.width - 1].lower.east = maze.tiles[0][maze.width - 1].lower;
+}
+
 export function generateMaze(width: number, height: number, crossFraction: number, longCorridors: boolean): Maze {
     const maze = new Maze(width, height);
     const permutations = generatePermutations([ 0, 1, 2, 3]);
@@ -363,32 +368,6 @@ export function generateMaze(width: number, height: number, crossFraction: numbe
     addCrosses(maze, crossFraction, stack);
     const regions = assignRegions(maze, stack);
     createSpanningTree(maze, stack, permutations, regions, longCorridors);
+    createTerminals(maze);
     return maze;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
