@@ -4,6 +4,10 @@ export class Maze {
     width: number;
     height: number;
     tiles: Tile[][];
+    startTile: Tile;
+    endTile: Tile;
+
+    solved = false;
 
     constructor(width: number, height: number) {
         this.width = width;
@@ -15,5 +19,7 @@ export class Maze {
                 this.tiles[i][j] = new Tile(j, i);
             }
         }
+        this.startTile = this.tiles[height - 1][0];
+        this.endTile = this.tiles[0][width - 1];
     }
 }

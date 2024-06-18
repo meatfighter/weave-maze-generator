@@ -14,6 +14,7 @@ export default [
         external: [
             'sharp',
             'canvas',
+            'tinyqueue',
         ],
         plugins: [
             resolve(),

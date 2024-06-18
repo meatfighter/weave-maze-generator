@@ -6,29 +6,32 @@ export class Node {
     south: Node | null = null;
     west: Node | null = null;
 
-    _north: Node | null = null;
-    _east: Node | null = null;
-    _south: Node | null = null;
-    _west: Node | null = null;
+    north2: Node | null = null;
+    east2: Node | null = null;
+    south2: Node | null = null;
+    west2: Node | null = null;
 
     visitedBy: Node | null = null;
 
     region = -1;
 
+    cost = 0;
+    estimatedFullCost = 0;
+
     constructor(public tile: Tile) {
     }
 
     backup() {
-        this._north = this.north;
-        this._east = this.east;
-        this._south = this.south;
-        this._west = this.west;
+        this.north2 = this.north;
+        this.east2 = this.east;
+        this.south2 = this.south;
+        this.west2 = this.west;
     }
 
     restore() {
-        this.north = this._north;
-        this.east = this._east;
-        this.south = this._south;
-        this.west = this._west;
+        this.north = this.north2;
+        this.east = this.east2;
+        this.south = this.south2;
+        this.west = this.west2;
     }
 }

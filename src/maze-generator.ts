@@ -2,6 +2,9 @@ import { Maze } from '@/Maze';
 import { Tile } from '@/Tile';
 import { Node } from '@/Node';
 import { generatePermutations, shuffleArray } from '@/arrays';
+import { Terminal } from '@/Terminal';
+import { TerminalSide } from '@/TerminalSide';
+import { solveMaze } from '@/maze-solver';
 
 function assignRegion(region: number, seed: Node, stack: Node[]): Node[] {
 
@@ -129,10 +132,6 @@ function findLoop(maze: Maze, seed: Node, stack: Node[]): boolean {
     return false;
 }
 
-function isNotFlat(tile: Tile) {
-    return tile.upper.north || tile.upper.east || tile.upper.south || tile.upper.west;
-}
-
 function wireCross(tile: Tile, northTile: Tile, eastTile: Tile, southTile: Tile, westTile: Tile,
                    northSouthHopsEastWest: boolean) {
 
@@ -202,15 +201,15 @@ function wireCross(tile: Tile, northTile: Tile, eastTile: Tile, southTile: Tile,
 function addNorthEastLoop(maze: Maze, tile: Tile, stack: Node[], northSouthHopsEastWest: boolean): boolean {
 
     const northTile = maze.tiles[tile.y - 1][tile.x];
-    if (isNotFlat(northTile)) {
+    if (northTile.isNotFlat()) {
         return false;
     }
     const northEastTile = maze.tiles[tile.y - 1][tile.x + 1];
-    if (isNotFlat(northEastTile)) {
+    if (northEastTile.isNotFlat()) {
         return false;
     }
     const eastTile = maze.tiles[tile.y][tile.x + 1];
-    if (isNotFlat(eastTile)) {
+    if (eastTile.isNotFlat()) {
         return false;
     }
 
@@ -251,15 +250,15 @@ function addNorthEastLoop(maze: Maze, tile: Tile, stack: Node[], northSouthHopsE
 function addSouthEastLoop(maze: Maze, tile: Tile, stack: Node[], northSouthHopsEastWest: boolean): boolean {
 
     const southTile = maze.tiles[tile.y + 1][tile.x];
-    if (isNotFlat(southTile)) {
+    if (southTile.isNotFlat()) {
         return false;
     }
     const southEastTile = maze.tiles[tile.y + 1][tile.x + 1];
-    if (isNotFlat(southEastTile)) {
+    if (southEastTile.isNotFlat()) {
         return false;
     }
     const eastTile = maze.tiles[tile.y][tile.x + 1];
-    if (isNotFlat(eastTile)) {
+    if (eastTile.isNotFlat()) {
         return false;
     }
 
@@ -300,15 +299,15 @@ function addSouthEastLoop(maze: Maze, tile: Tile, stack: Node[], northSouthHopsE
 function addSouthWestLoop(maze: Maze, tile: Tile, stack: Node[], northSouthHopsEastWest: boolean): boolean {
 
     const southTile = maze.tiles[tile.y + 1][tile.x];
-    if (isNotFlat(southTile)) {
+    if (southTile.isNotFlat()) {
         return false;
     }
     const southWestTile = maze.tiles[tile.y + 1][tile.x - 1];
-    if (isNotFlat(southWestTile)) {
+    if (southWestTile.isNotFlat()) {
         return false;
     }
     const westTile = maze.tiles[tile.y][tile.x - 1];
-    if (isNotFlat(westTile)) {
+    if (westTile.isNotFlat()) {
         return false;
     }
 
@@ -349,15 +348,15 @@ function addSouthWestLoop(maze: Maze, tile: Tile, stack: Node[], northSouthHopsE
 function addNorthWestLoop(maze: Maze, tile: Tile, stack: Node[], northSouthHopsEastWest: boolean): boolean {
 
     const northTile = maze.tiles[tile.y - 1][tile.x];
-    if (isNotFlat(northTile)) {
+    if (northTile.isNotFlat()) {
         return false;
     }
     const northWestTile = maze.tiles[tile.y - 1][tile.x - 1];
-    if (isNotFlat(northWestTile)) {
+    if (northWestTile.isNotFlat()) {
         return false;
     }
     const westTile = maze.tiles[tile.y][tile.x - 1];
-    if (isNotFlat(westTile)) {
+    if (westTile.isNotFlat()) {
         return false;
     }
 
@@ -472,7 +471,9 @@ function addLoopsAndCrosses(maze: Maze, loopFraction: number, crossFraction: num
 
     for (let i = maze.height - 2; i >= 1; --i) {
         for (let j = maze.width - 2; j >= 1; --j) {
-            tiles.push(maze.tiles[i][j]);
+            if (maze.tiles[i][j].isFlat()) {
+                tiles.push(maze.tiles[i][j]);
+            }
         }
     }
 
@@ -519,7 +520,10 @@ function createSpanningTree(maze: Maze, nodes: Node[], permutations: number[][],
             }
         }
     }
-    shuffleArray(nodes);
+
+    if (longCorridors) {
+        shuffleArray(nodes);
+    }
 
     outer: while (nodes.length > 0) {
         const index = longCorridors ? nodes.length - 1 : Math.floor(nodes.length * Math.random());
@@ -611,19 +615,57 @@ function createSpanningTree(maze: Maze, nodes: Node[], permutations: number[][],
     }
 }
 
-function createTerminals(maze: Maze) {
-    maze.tiles[maze.height - 1][0].lower.west = maze.tiles[maze.height - 1][0].lower;
-    maze.tiles[0][maze.width - 1].lower.east = maze.tiles[0][maze.width - 1].lower;
+function addTerminal(maze: Maze, terminal: Terminal): Tile {
+    switch (terminal.side) {
+        case TerminalSide.NORTH: {
+            const tile = maze.tiles[0][Math.round(terminal.position * (maze.width - 1))];
+            if (terminal.open) {
+                tile.lower.north = tile.lower;
+            }
+            return tile;
+        }
+        case TerminalSide.EAST: {
+            const tile = maze.tiles[Math.round(terminal.position * (maze.height - 1))][maze.width - 1];
+            if (terminal.open) {
+                tile.lower.east = tile.lower;
+            }
+            return tile;
+        }
+        case TerminalSide.SOUTH: {
+            const tile = maze.tiles[maze.height - 1][Math.round(terminal.position * (maze.width - 1))];
+            if (terminal.open) {
+                tile.lower.south = tile.lower;
+            }
+            return tile;
+        }
+        default: {
+            const tile = maze.tiles[Math.round(terminal.position * (maze.height - 1))][0];
+            if (terminal.open) {
+                tile.lower.west = tile.lower;
+            }
+            return tile;
+        }
+    }
 }
 
-export function generateMaze(width: number, height: number, loopFraction: number, crossFraction: number,
-                             longCorridors: boolean): Maze {
+export function generateMaze(width: number,
+                             height: number,
+                             loopFraction: number,
+                             crossFraction: number,
+                             longCorridors: boolean,
+                             startTerminal: Terminal,
+                             endTerminal: Terminal): Maze {
+
     const maze = new Maze(width, height);
     const permutations = generatePermutations([ 0, 1, 2, 3]);
     const stack: Node[] = [];
     addLoopsAndCrosses(maze, loopFraction, crossFraction, stack, permutations);
     const regions = assignRegions(maze, stack);
     createSpanningTree(maze, stack, permutations, regions, longCorridors);
-    createTerminals(maze);
+    maze.startTile = addTerminal(maze, startTerminal);
+    maze.endTile = addTerminal(maze, endTerminal);
+
+    solveMaze(maze);
+
     return maze;
 }

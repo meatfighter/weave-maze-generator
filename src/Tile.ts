@@ -16,4 +16,12 @@ export class Tile {
         this.lower.restore();
         this.upper.restore();
     }
+
+    isFlat() {
+        return !this.isNotFlat();
+    }
+
+    isNotFlat() {
+        return this.upper.north || this.upper.east || this.upper.south || this.upper.west;
+    }
 }
