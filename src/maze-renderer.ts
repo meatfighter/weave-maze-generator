@@ -1,6 +1,6 @@
 import sharp from 'sharp';
 import { Maze } from '@/Maze';
-import { createCanvas } from 'canvas';
+import { CanvasRenderingContext2D, createCanvas } from 'canvas';
 
 const TILE_SIZE = 40;
 const HALF_TILE_SIZE = TILE_SIZE >> 1;
@@ -10,21 +10,88 @@ const BLACK = 0;
 const THICKNESS_FRAC = 0.15;
 const WALL_FRAC = 0.15;
 
-export async function saveImage(maze: Maze, filename: string) {
-
-    const width = TILE_SIZE * maze.width;
-    const height = TILE_SIZE * maze.height;
+function renderCurvedSolution(c: CanvasRenderingContext2D, maze: Maze) {
 
     const d0 = WALL_FRAC * TILE_SIZE;
     const d1 = (1 - WALL_FRAC) * TILE_SIZE;
     const dm = TILE_SIZE / 2;
     const r0 = (d1 - d0) / 2;
 
-    const canvas = createCanvas(width, height);
-    const c = canvas.getContext('2d');
+    c.strokeStyle = 'red';
+    c.lineWidth = THICKNESS_FRAC * TILE_SIZE;
+    c.lineCap = 'round';
 
-    c.fillStyle = 'white';
-    c.fillRect(0, 0, width, height);
+    for (let i = maze.height - 1; i >= 0; --i) {
+        const oy = i * TILE_SIZE;
+        for (let j = maze.width - 1; j >= 0; --j) {
+            const ox = j * TILE_SIZE;
+            const tile = maze.tiles[i][j];
+
+            c.beginPath();
+
+            if (tile.upper.north2) {
+                c.moveTo(ox + dm, oy);
+                c.lineTo(ox + dm, oy + TILE_SIZE);
+            } else if (tile.upper.east2) {
+                c.moveTo(ox, oy + dm);
+                c.lineTo(ox + TILE_SIZE, oy + dm);
+            }
+
+            if (tile.upper.north && tile.lower.east2) {
+                c.moveTo(ox, oy + dm);
+                c.lineTo(ox + d0, oy + dm);
+                c.moveTo(ox + d1, oy + dm);
+                c.lineTo(ox + TILE_SIZE, oy + dm);
+            } else if (tile.upper.east && tile.lower.north2) {
+                c.moveTo(ox + dm, oy);
+                c.lineTo(ox + dm, oy + d0);
+                c.moveTo(ox + dm, oy + d1);
+                c.lineTo(ox + dm, oy + TILE_SIZE);
+            } else {
+                const lower = tile.lower;
+                const value = (lower.north2 ? 0b1000 : 0) | (lower.east2 ? 0b0100 : 0) | (lower.south2 ? 0b0010 : 0)
+                    | (lower.west2 ? 0b0001 : 0);
+
+                switch (value) {
+                    case 0b1100:
+                        c.moveTo(ox + dm, oy);
+                        c.arcTo(ox + dm, oy + dm, ox + TILE_SIZE, oy + dm, dm);
+                        break;
+                    case 0b0110:
+                        c.moveTo(ox + TILE_SIZE, oy + dm);
+                        c.arcTo(ox + dm, oy + dm, ox + dm, oy + TILE_SIZE, dm);
+                        break;
+                    case 0b0011:
+                        c.moveTo(ox + dm, oy + TILE_SIZE);
+                        c.arcTo(ox + dm, oy + dm, ox, oy + dm, dm);
+                        break;
+                    case 0b1001:
+                        c.moveTo(ox, oy + dm);
+                        c.arcTo(ox + dm, oy + dm, ox + dm, oy, dm);
+                        break;
+
+                    case 0b1010:
+                        c.moveTo(ox + dm, oy);
+                        c.lineTo(ox + dm, oy + TILE_SIZE);
+                        break;
+                    case 0b0101:
+                        c.moveTo(ox, oy + dm);
+                        c.lineTo(ox + TILE_SIZE, oy + dm);
+                        break;
+                }
+            }
+
+            c.stroke();
+        }
+    }
+}
+
+function renderCurvedMaze(c: CanvasRenderingContext2D, maze: Maze) {
+
+    const d0 = WALL_FRAC * TILE_SIZE;
+    const d1 = (1 - WALL_FRAC) * TILE_SIZE;
+    const dm = TILE_SIZE / 2;
+    const r0 = (d1 - d0) / 2;
 
     c.strokeStyle = 'black';
     c.lineWidth = THICKNESS_FRAC * TILE_SIZE;
@@ -35,6 +102,8 @@ export async function saveImage(maze: Maze, filename: string) {
         for (let j = maze.width - 1; j >= 0; --j) {
             const ox = j * TILE_SIZE;
             const tile = maze.tiles[i][j];
+
+            c.beginPath();
 
             if (tile.upper.north) {
                 c.moveTo(ox + d0, oy);
@@ -67,7 +136,6 @@ export async function saveImage(maze: Maze, filename: string) {
                 const value = (lower.north ? 0b1000 : 0) | (lower.east ? 0b0100 : 0) | (lower.south ? 0b0010 : 0)
                     | (lower.west ? 0b0001 : 0);
 
-                c.beginPath();
                 switch (value) {
                     case 0b1000:
                         c.moveTo(ox + d0, oy);
@@ -185,6 +253,23 @@ export async function saveImage(maze: Maze, filename: string) {
             c.stroke();
         }
     }
+}
+
+export async function saveImage(maze: Maze, filename: string) {
+
+    const width = TILE_SIZE * maze.width;
+    const height = TILE_SIZE * maze.height;
+
+    const canvas = createCanvas(width, height);
+    const c = canvas.getContext('2d');
+
+    c.fillStyle = 'white';
+    c.fillRect(0, 0, width, height);
+
+    if (maze.solved) {
+        renderCurvedSolution(c, maze);
+    }
+    renderCurvedMaze(c, maze);
 
     await sharp(canvas.toBuffer('image/png')).toFile(filename);
 }

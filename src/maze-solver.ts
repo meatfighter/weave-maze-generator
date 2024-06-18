@@ -14,15 +14,19 @@ function reconstructPath(maze: Maze) {
         switch (node.visitedBy) {
             case node.north:
                 node.north2 = node.visitedBy;
+                node.visitedBy.south2 = node;
                 break;
             case node.east:
                 node.east2 = node.visitedBy;
+                node.visitedBy.west2 = node;
                 break;
             case node.south:
                 node.south2 = node.visitedBy;
+                node.visitedBy.north2 = node;
                 break;
             case node.west:
                 node.west2 = node.visitedBy;
+                node.visitedBy.east2 = node;
                 break;
         }
         node = node.visitedBy;
