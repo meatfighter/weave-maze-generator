@@ -34,22 +34,28 @@ function reconstructPath(maze: Maze) {
 }
 
 export function solveMaze(maze: Maze) {
+
+    const startTile = maze.startTile;
+    const endTile = maze.endTile;
+
     for (let i = maze.height - 1; i >= 0; --i) {
         for (let j = maze.width - 1; j >= 0; --j) {
             const tile = maze.tiles[i][j];
             const lower = tile.lower;
-            lower.visitedBy = lower.north2 = lower.east2 = lower.south2 = lower.west2 = null;
+            lower.visitedBy = null;
             lower.cost = lower.estimatedFullCost = Number.POSITIVE_INFINITY;
             const upper = tile.upper;
-            upper.visitedBy = upper.north2 = upper.east2 = upper.south2 = upper.west2 = null;
+            upper.visitedBy = null;
             upper.cost = upper.estimatedFullCost = Number.POSITIVE_INFINITY;
+            if (tile !== startTile && tile !== endTile) {
+                lower.north2 = lower.east2 = lower.south2 = lower.west2 = null;
+                upper.north2 = upper.east2 = upper.south2 = upper.west2 = null;
+            }
         }
     }
 
-    const endTile = maze.endTile;
     const endNode = maze.endTile.lower;
-
-    const startNode = maze.startTile.lower;
+    const startNode = startTile.lower;
     startNode.cost = 0;
     startNode.estimatedFullCost = heuristic(endTile, startNode);
 

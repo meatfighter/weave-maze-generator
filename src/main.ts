@@ -12,8 +12,8 @@ import { TerminalSide } from '@/TerminalSide';
 // - binary bitmap shapes
 
 async function main() {
-    // await saveImage(generateMaze(250, 250, 0.05, .3, false,
-    //         new Terminal(TerminalSide.WEST, 1, true), new Terminal(TerminalSide.EAST, 0, true)), 'maze.png');
+    // await saveImage(generateMaze(25, 25, 0.05, .3, false,
+    //     new Terminal(TerminalSide.WEST, 1, true), new Terminal(TerminalSide.EAST, 0, true)), 'maze.png');
     await saveImage(generateMaze(25, 25, 0.05, .3, false,
         new Terminal(TerminalSide.WEST, 1, true), new Terminal(TerminalSide.EAST, 0, true)), 'maze.png');
 }

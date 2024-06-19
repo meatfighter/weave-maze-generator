@@ -495,13 +495,11 @@ function addLoopsAndCrosses(maze: Maze, loopFraction: number, crossFraction: num
 function mergeRegions(region1: number, region2: number, regions: Node[][]) {
     const region1Nodes = regions[region1];
     const region2Nodes = regions[region2];
-
-    for (const node of region1Nodes) {
-        node.region = region2;
-        region2Nodes.push(node);
+    for (let i = region1Nodes.length - 1; i >= 0; --i) {
+        region1Nodes[i].region = region2;
     }
-
-    regions[region1] = [];
+    region2Nodes.push(...region1Nodes);
+    regions[region1].length = 0;
 }
 
 function moveToEnd(nodes: Node[], node: Node) {
@@ -627,28 +625,28 @@ function addTerminal(maze: Maze, terminal: Terminal): Tile {
         case TerminalSide.NORTH: {
             const tile = maze.tiles[0][Math.round(terminal.position * (maze.width - 1))];
             if (terminal.open) {
-                tile.lower.north = tile.lower;
+                tile.lower.north2 = tile.lower.north = tile.lower;
             }
             return tile;
         }
         case TerminalSide.EAST: {
             const tile = maze.tiles[Math.round(terminal.position * (maze.height - 1))][maze.width - 1];
             if (terminal.open) {
-                tile.lower.east = tile.lower;
+                tile.lower.east2 = tile.lower.east = tile.lower;
             }
             return tile;
         }
         case TerminalSide.SOUTH: {
             const tile = maze.tiles[maze.height - 1][Math.round(terminal.position * (maze.width - 1))];
             if (terminal.open) {
-                tile.lower.south = tile.lower;
+                tile.lower.south2 = tile.lower.south = tile.lower;
             }
             return tile;
         }
         default: {
             const tile = maze.tiles[Math.round(terminal.position * (maze.height - 1))][0];
             if (terminal.open) {
-                tile.lower.west = tile.lower;
+                tile.lower.west2 = tile.lower.west = tile.lower;
             }
             return tile;
         }
