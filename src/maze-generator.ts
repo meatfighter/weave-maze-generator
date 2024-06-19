@@ -469,6 +469,7 @@ function addLoopsAndCrosses(maze: Maze, loopFraction: number, crossFraction: num
         }
     }
 
+    tiles.length = 0;
     for (let i = maze.height - 2; i >= 1; --i) {
         for (let j = maze.width - 2; j >= 1; --j) {
             if (maze.tiles[i][j].isFlat()) {
@@ -492,9 +493,15 @@ function addLoopsAndCrosses(maze: Maze, loopFraction: number, crossFraction: num
 }
 
 function mergeRegions(region1: number, region2: number, regions: Node[][]) {
-    regions[region1].forEach(node => node.region = region2);
-    regions[region2].push(...regions[region1]);
-    regions[region1].length = 0;
+    const region1Nodes = regions[region1];
+    const region2Nodes = regions[region2];
+
+    for (const node of region1Nodes) {
+        node.region = region2;
+        region2Nodes.push(node);
+    }
+
+    regions[region1] = [];
 }
 
 function moveToEnd(nodes: Node[], node: Node) {
