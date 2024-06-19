@@ -1,6 +1,8 @@
+import { Hashable } from '@/collections/Hashable';
+
 const TOLERANCE = 1 / 256;
 
-export class Point {
+export class Point implements Hashable<Point> {
 
     readonly x: number;
     readonly y: number;
@@ -31,5 +33,9 @@ export class Point {
 
     equals(other: Point): boolean {
         return this.compareX(other) && this.compareY(other);
+    }
+
+    toString(): string {
+        return `(${this.x}, ${this.y})`;
     }
 }

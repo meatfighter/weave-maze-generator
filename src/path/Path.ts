@@ -2,11 +2,12 @@ import { Segment } from '@/path/Segment';
 import { Point } from '@/path/Point';
 import { Line } from '@/path/Line';
 import { Arc } from '@/path/Arc';
+import { HashMap } from '@/collections/HashMap';
 
 export class Paths {
 
     cursor = new Point();
-    paths = new Map<Point, Segment[]>();
+    paths = new HashMap<Point, Segment[]>();
     loops: Segment[][] = [];
 
     private optimize(path: Segment[], loop: boolean) {
@@ -46,6 +47,17 @@ export class Paths {
         }
     }
 
+    static asString(path: Segment[]) {
+        let s = '';
+        path.forEach(segment => {
+            if (s.length > 0) {
+                s += ", ";
+            }
+            s += segment.toString();
+        });
+        return s;
+    }
+
     optimizeAll() {
         for (const path of this.paths.values()) {
             this.optimize(path, false);
@@ -53,37 +65,13 @@ export class Paths {
         this.loops.forEach(loop => this.optimize(loop, true));
     }
 
+    private reversePath(path: Segment[]) {
+        path.reverse();
+        path.forEach(segment => segment.reverse());
+    }
+
     private addSegment(segment: Segment) {
-        let startPath = this.paths.get(segment.getStart());
-        let endPath = this.paths.get(segment.getEnd());
-        if (!startPath && !endPath) {
-            const path = [ segment ];
-            this.paths.set(segment.getStart(), path);
-            this.paths.set(segment.getEnd(), path);
-        } else if (!startPath && endPath) {
-            this.paths.delete(segment.getEnd());
-            segment.reverse();
-            endPath.push(segment);
-            this.paths.set(segment.getEnd(), endPath);
-        } else if (startPath && !endPath) {
-            this.paths.delete(segment.getStart());
-            segment.reverse();
-            startPath.unshift(segment);
-            this.paths.set(segment.getStart(), startPath);
-        } else if (startPath && endPath) {
-            if (startPath === endPath) {
-                this.paths.delete(segment.getStart());
-                this.paths.delete(segment.getEnd());
-                segment.reverse();
-                startPath.unshift(segment);
-                this.loops.push(startPath);
-            } else {
-                this.paths.delete(segment.getStart());
-                segment.reverse();
-                startPath.unshift(segment);
-                endPath.push(...startPath);
-            }
-        }
+
     }
 
     moveTo(x: number, y: number) {

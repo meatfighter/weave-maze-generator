@@ -35,4 +35,8 @@ export class Line implements Segment {
 
         return false;
     }
+
+    toString(): string {
+        return `${this.p0}-${this.p1}`;
+    }
 }

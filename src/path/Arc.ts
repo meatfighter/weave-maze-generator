@@ -23,4 +23,8 @@ export class Arc implements Segment {
         this.p0 = this.p2;
         this.p2 = t;
     }
+
+    toString(): string {
+        return `${this.p0}~${this.p1}~${this.p2}:${this.radius}`;
+    }
 }
