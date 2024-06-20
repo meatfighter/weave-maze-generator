@@ -12,7 +12,7 @@ export class Point implements Hashable<Point> {
     constructor(x = 0, y = 0) {
         this.x = x;
         this.y = y;
-        this.hash = Math.round(10007 * this.x) ^ Math.round(11927 * this.y);
+        this.hash = Math.round(65537 * this.x) - Math.round(257 * this.y);
     }
 
     private compare(a: number, b: number): boolean {
@@ -32,7 +32,7 @@ export class Point implements Hashable<Point> {
     }
 
     equals(other: Point): boolean {
-        return this.compareX(other) && this.compareY(other);
+        return this === other || (this.compareX(other) && this.compareY(other));
     }
 
     toString(): string {
