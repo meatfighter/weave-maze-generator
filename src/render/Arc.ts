@@ -1,5 +1,5 @@
-import { Point } from '@/path/Point';
-import { Segment } from '@/path/Segment';
+import { Point } from '@/render/Point';
+import { Segment } from '@/render/Segment';
 
 export class Arc implements Segment {
 

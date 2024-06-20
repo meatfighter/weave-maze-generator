@@ -1,5 +1,5 @@
-import { Segment } from '@/path/Segment';
-import { Point } from '@/path/Point';
+import { Segment } from '@/render/Segment';
+import { Point } from '@/render/Point';
 
 export class PathNode implements Segment {
 

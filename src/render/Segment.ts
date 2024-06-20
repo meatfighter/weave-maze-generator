@@ -1,4 +1,4 @@
-import { Point } from '@/path/Point';
+import { Point } from '@/render/Point';
 
 export interface Segment {
     getStart(): Point;

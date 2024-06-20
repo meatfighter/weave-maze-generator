@@ -1,15 +1,14 @@
-import { Point } from '@/path/Point';
-import { Line } from '@/path/Line';
-import { Arc } from '@/path/Arc';
-import { Segment } from '@/path/Segment';
+import { Point } from '@/render/Point';
+import { Line } from '@/render/Line';
+import { Arc } from '@/render/Arc';
+import { Segment } from '@/render/Segment';
 import { HashMap } from '@/collections/HashMap';
-import { PathNode } from '@/path/PathNode';
+import { PathNode } from '@/render/PathNode';
 
 export class RenderingContext {
 
-    cursor = new Point();
-    segments: Segment[] = [];
-    paths: Segment[][] = [];
+    private cursor = new Point();
+    private segments: Segment[] = [];
 
     moveTo(x: number, y: number) {
         this.cursor = new Point(x, y);
@@ -56,7 +55,8 @@ export class RenderingContext {
         }
     }
 
-    minify() {
+    getPaths(): Segment[][] {
+        const paths: Segment[][] = [];
         const map = new HashMap<Point, Segment>();
         this.segments.forEach(segment => {
             const startSegment = map.get(segment.getStart());
@@ -91,7 +91,9 @@ export class RenderingContext {
             const path: Segment[] = [];
             this.flatten(segment, path);
             this.optimize(path);
-            this.paths.push(path);
+            paths.push(path);
         });
+        this.segments.length = 0;
+        return paths;
     }
 }
