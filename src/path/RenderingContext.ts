@@ -9,6 +9,7 @@ export class RenderingContext {
 
     cursor = new Point();
     segments: Segment[] = [];
+    paths: Segment[][] = [];
 
     moveTo(x: number, y: number) {
         this.cursor = new Point(x, y);
@@ -25,6 +26,34 @@ export class RenderingContext {
         const p2 = new Point(x2, y2);
         this.segments.push(new Arc(this.cursor, p1, p2, radius));
         this.cursor = p2;
+    }
+
+    private flatten(s: Segment | null, path: Segment[]) {
+        if (!s) {
+            return;
+        }
+        if (!(s.getLeft() || s.getRight())) {
+            path.push(s);
+            return;
+        }
+        if (s.getLeft()) {
+            this.flatten(s.getLeft(), path);
+        }
+        if (s.getRight()) {
+            this.flatten(s.getRight(), path);
+        }
+    }
+
+    private optimize(path: Segment[]) {
+        for (let i = path.length - 1; i > 0; --i) {
+            if (path[i - 1].isLine() && path[i].isLine()) {
+                const l0 = path[i - 1] as Line;
+                const l1 = path[i] as Line;
+                if (l0.merge(l1)) {
+                    path.splice(i, 1);
+                }
+            }
+        }
     }
 
     minify() {
@@ -58,7 +87,11 @@ export class RenderingContext {
                 map.delete(segment.getEnd());
             }
         });
-        this.segments.length = 0;
-        this.segments.push(...map.values());
+        map.values().forEach(segment => {
+            const path: Segment[] = [];
+            this.flatten(segment, path);
+            this.optimize(path);
+            this.paths.push(path);
+        });
     }
 }

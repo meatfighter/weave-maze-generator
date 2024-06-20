@@ -21,6 +21,14 @@ export class Line implements Segment {
         return this.p1;
     }
 
+    getLeft(): Segment | null {
+        return null;
+    }
+
+    getRight(): Segment | null {
+        return null;
+    }
+
     reverse() {
         const t = this.p0;
         this.p0 = this.p1;

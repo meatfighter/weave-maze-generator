@@ -18,6 +18,14 @@ export class Arc implements Segment {
         return this.p2;
     }
 
+    getLeft(): Segment | null {
+        return null;
+    }
+
+    getRight(): Segment | null {
+        return null;
+    }
+
     reverse() {
         const t = this.p0;
         this.p0 = this.p2;

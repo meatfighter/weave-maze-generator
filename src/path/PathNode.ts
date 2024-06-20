@@ -14,6 +14,14 @@ export class PathNode implements Segment {
         return this.s1.getEnd();
     }
 
+    getLeft(): Segment | null {
+        return this.s0;
+    }
+
+    getRight(): Segment | null {
+        return this.s1;
+    }
+
     reverse() {
         this.s0.reverse();
         this.s1.reverse();

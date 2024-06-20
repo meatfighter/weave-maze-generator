@@ -23,6 +23,9 @@ async function main() {
 
     const c = new RenderingContext();
     c.moveTo(10, 10);
+    c.moveTo(10, 12);
+    c.moveTo(10, 14);
+    c.moveTo(10, 16);
     c.lineTo(10, 20);
     c.lineTo(20, 20);
 
@@ -34,7 +37,16 @@ async function main() {
     c.arcTo(30, 40, 40, 40, 10);
 
     c.minify();
-    c.segments.forEach(segment => console.log(`${segment}`));
+    c.paths.forEach(path => {
+        let s = '';
+        path.forEach(segment => {
+            if (s.length > 0) {
+                s += ', ';
+            }
+            s += segment.toString();
+        })
+        console.log(s);
+    });
 }
 
 void main();
