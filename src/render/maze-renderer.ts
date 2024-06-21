@@ -1,18 +1,19 @@
 import sharp from 'sharp';
 import { Maze } from '@/Maze';
 import { CanvasRenderingContext2D, createCanvas } from 'canvas';
-import { RenderingContext } from '@/render/RenderingContext';
+import { PathOptimizer } from '@/render/PathOptimizer';
 import { Segment } from '@/render/Segment';
 import { Point } from '@/render/Point';
 import { Line } from '@/render/Line';
 import { Arc } from '@/render/Arc';
+import { RenderingContext } from '@/render/RenderingContext';
+import { RenderOptions } from '@/render/RenderOptions';
 
 const TILE_SIZE = 25;
 const THICKNESS_FRAC = 0.15;
 const WALL_FRAC = 0.15;
 
-function renderPaths(c: CanvasRenderingContext2D, paths: Segment[][], curved: boolean) {
-    c.beginPath();
+function renderPaths(c: RenderingContext, paths: Segment[][], curved: boolean) {
     paths.forEach(ss => {
         let cursor = new Point();
         ss.forEach(s => {
@@ -36,13 +37,9 @@ function renderPaths(c: CanvasRenderingContext2D, paths: Segment[][], curved: bo
             }
         });
     });
-    c.stroke();
 }
 
-function renderSolution(ctx: CanvasRenderingContext2D, maze: Maze, curved: boolean) {
-
-    const c = new RenderingContext();
-
+function renderSolution(c: RenderingContext, options: RenderOptions, maze: Maze) {
     const d0 = WALL_FRAC * TILE_SIZE;
     const d1 = (1 - WALL_FRAC) * TILE_SIZE;
     const dm = TILE_SIZE / 2;
@@ -106,17 +103,11 @@ function renderSolution(ctx: CanvasRenderingContext2D, maze: Maze, curved: boole
             }
         }
     }
-
-    ctx.strokeStyle = 'red';
-    ctx.lineWidth = THICKNESS_FRAC * TILE_SIZE;
-    ctx.lineCap = 'round';
-
-    renderPaths(ctx, c.getPaths(), curved);
 }
 
 function renderMaze(ctx: CanvasRenderingContext2D, maze: Maze, curved: boolean) {
 
-    const c = new RenderingContext();
+    const c = new PathOptimizer();
 
     const d0 = WALL_FRAC * TILE_SIZE;
     const d1 = (1 - WALL_FRAC) * TILE_SIZE;

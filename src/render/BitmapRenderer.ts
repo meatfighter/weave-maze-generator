@@ -1,58 +1,79 @@
 import { RenderOptions } from '@/render/RenderOptions';
 import { Renderer } from '@/render/Renderer';
 import { MazeOptions } from '@/MazeOptions';
-import { createCanvas } from 'canvas';
+import { Canvas, CanvasRenderingContext2D, createCanvas } from 'canvas';
+import sharp from 'sharp';
 
 export class BitmapRenderer implements Renderer {
 
-    init(mazeOptions: MazeOptions, renderOptions: RenderOptions) {
-        let tileSize: number;
+    private readonly canvas: Canvas;
+    private readonly ctx: CanvasRenderingContext2D;
+    private readonly tileSize: number;
+    private readonly renderOptions: RenderOptions;
+
+    constructor(mazeOptions: MazeOptions, renderOptions: RenderOptions) {
+        this.renderOptions = renderOptions;
+
         let canvasWidth: number;
         let canvasHeight: number;
         if (renderOptions.tileSize > 0) {
-            tileSize = renderOptions.tileSize;
-            canvasWidth = tileSize * mazeOptions.width;
-            canvasHeight = tileSize * mazeOptions.height;
+            this.tileSize = renderOptions.tileSize;
+            canvasWidth = this.tileSize * mazeOptions.width;
+            canvasHeight = this.tileSize * mazeOptions.height;
         } else if (renderOptions.imageWidth > 0) {
             canvasWidth = renderOptions.imageWidth;
-            tileSize = canvasWidth / mazeOptions.width;
-            canvasHeight = tileSize * mazeOptions.height;
+            this.tileSize = canvasWidth / mazeOptions.width;
+            canvasHeight = this.tileSize * mazeOptions.height;
         } else if (renderOptions.imageHeight > 0) {
             canvasHeight = renderOptions.imageHeight;
-            tileSize = canvasHeight / mazeOptions.height;
-            canvasWidth = tileSize * mazeOptions.width;
+            this.tileSize = canvasHeight / mazeOptions.height;
+            canvasWidth = this.tileSize * mazeOptions.width;
         } else {
             throw new Error('tileSize, imageWidth, or imageHeight must be >= 0');
         }
 
-        const canvas = createCanvas(canvasWidth, canvasHeight);
-        const ctx = canvas.getContext('2d');
+        this.canvas = createCanvas(canvasWidth, canvasHeight);
+        this.ctx = this.canvas.getContext('2d');
 
-        ctx.fillStyle = `#${renderOptions.backgroundColor}`;
-        ctx.fillRect(0, 0, width, height);
+        const b = renderOptions.backgroundColor;
+        this.ctx.fillStyle = `rgba(${b.red}, ${b.green}, ${b.blue}, ${b.alpha})`;
+        this.ctx.fillRect(0, 0, canvasWidth, canvasHeight);
     }
 
     beginSolution() {
-        throw new Error('Method not implemented.');
+        const s = this.renderOptions.solutionColor;
+        this.ctx.lineWidth = this.renderOptions.lineThicknessFrac * this.tileSize;
+        this.ctx.strokeStyle = `rgba(${s.red}, ${s.green}, ${s.blue}, ${s.alpha})`;
+        this.ctx.lineCap = 'round';
+        this.ctx.beginPath();
     }
 
     beginWalls() {
-        throw new Error('Method not implemented.');
+        const w = this.renderOptions.wallColor;
+        this.ctx.lineWidth = this.renderOptions.lineThicknessFrac * this.tileSize;
+        this.ctx.strokeStyle = `rgba(${w.red}, ${w.green}, ${w.blue}, ${w.alpha})`;
+        this.ctx.lineCap = 'round';
+        this.ctx.beginPath();
     }
 
     moveTo(x: number, y: number) {
-        throw new Error('Method not implemented.');
+        this.ctx.moveTo(x, y);
     }
 
     lineTo(x: number, y: number) {
-        throw new Error('Method not implemented.');
+        this.ctx.lineTo(x, y);
     }
 
     arcTo(x1: number, y1: number, x2: number, y2: number, radius: number) {
-        throw new Error('Method not implemented.');
+        this.ctx.arc(x1, y1, x2, y2, radius);
     }
 
     stroke() {
-        throw new Error('Method not implemented.');
+        this.ctx.stroke();
+    }
+
+    async save() {
+        // TODO TYPE BASED ON FILE EXTENSION
+        await sharp(this.canvas.toBuffer('image/png')).toFile(this.renderOptions.filename);
     }
 }

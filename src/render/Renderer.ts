@@ -1,12 +1,17 @@
 import { RenderOptions } from '@/render/RenderOptions';
 import { MazeOptions } from '@/MazeOptions';
+import { RenderingContext } from '@/render/RenderingContext';
 
-export interface Renderer {
-    init(mazeOptions: MazeOptions, renderOptions: RenderOptions): void;
+export type RendererConstructor = new (mazeOptions: MazeOptions, renderOptions: RenderOptions) => Renderer;
+
+export function createRenderer(ctor: RendererConstructor,
+                               mazeOptions: MazeOptions, renderOptions: RenderOptions): Renderer {
+    return new ctor(mazeOptions, renderOptions);
+}
+
+export interface Renderer extends RenderingContext {
     beginSolution(): void;
     beginWalls(): void;
-    moveTo(x: number, y: number): void;
-    lineTo(x: number, y: number): void;
-    arcTo(x1: number, y1: number, x2: number, y2: number, radius: number): void;
     stroke(): void;
+    save(): void;
 }

@@ -5,7 +5,7 @@ import { TerminalSide } from '@/TerminalSide';
 import { Line } from '@/render/Line';
 import { Point } from '@/render/Point';
 import { Arc } from '@/render/Arc';
-import { RenderingContext } from '@/render/RenderingContext';
+import { PathOptimizer } from '@/render/PathOptimizer';
 
 // TODO
 // - Find a way to go between short and long corridors (0 -- 1)
@@ -22,7 +22,7 @@ async function main() {
     await saveImage(generateMaze(20, 20, 0.05, .3, false,
         new Terminal(TerminalSide.WEST, 1, true), new Terminal(TerminalSide.EAST, 0, true)), false, false, 'maze.png');
 
-    // const c = new RenderingContext();
+    // const c = new PathOptimizer();
     // c.moveTo(10, 10);
     // c.lineTo(10, 12);
     // c.lineTo(10, 14);
