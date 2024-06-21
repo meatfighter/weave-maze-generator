@@ -4,4 +4,8 @@ export class Color {
                 public readonly blue: number,       // 0--255
                 public readonly alpha: number) {    // 0--1
     }
+
+    toStyle() {
+        return `rgba(${this.red}, ${this.green}, ${this.blue}, ${this.alpha})`;
+    }
 }

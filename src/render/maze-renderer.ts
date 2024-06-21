@@ -7,10 +7,12 @@ import { Point } from '@/render/Point';
 import { Line } from '@/render/Line';
 import { Arc } from '@/render/Arc';
 import { RenderOptions } from '@/render/RenderOptions';
-import { FileType } from '@/render/FileType';
 import { extractFilenameExtension } from '@/files';
 
+const SOLUTION_SUFFIX = '-solution';
+
 function renderPaths(ctx: CanvasRenderingContext2D, paths: Segment[][], curved: boolean) {
+    ctx.beginPath();
     paths.forEach(path => {
         let cursor = new Point();
         path.forEach(segment => {
@@ -34,9 +36,14 @@ function renderPaths(ctx: CanvasRenderingContext2D, paths: Segment[][], curved: 
             }
         });
     });
+    ctx.stroke();
 }
 
-function renderSolution(c: PathOptimizer, maze: Maze, cellSize: number, cellMarginFrac: number) {
+function renderSolution(ctx: CanvasRenderingContext2D, maze: Maze, cellSize: number, cellMarginFrac: number,
+                        curved: boolean) {
+
+    const c = new PathOptimizer();
+
     const d0 = cellMarginFrac * cellSize;
     const d1 = (1 - cellMarginFrac) * cellSize;
     const dm = cellSize / 2;
@@ -100,6 +107,8 @@ function renderSolution(c: PathOptimizer, maze: Maze, cellSize: number, cellMarg
             }
         }
     }
+
+    renderPaths(ctx, c.getPaths(), curved);
 }
 
 function renderMaze(ctx: CanvasRenderingContext2D, maze: Maze, cellSize: number, cellMarginFrac: number,
@@ -279,7 +288,7 @@ function toCanvasType(filename: string): 'pdf' | 'svg' | undefined {
     }
 }
 
-export async function saveMaze(renderOptions: RenderOptions, maze: Maze) {
+async function renderAndSave(maze: Maze, renderOptions: RenderOptions, solution: boolean) {
 
     let canvasWidth: number;
     let canvasHeight: number;
@@ -300,20 +309,39 @@ export async function saveMaze(renderOptions: RenderOptions, maze: Maze) {
         throw new Error('cellSize, imageWidth, or imageHeight must be >= 0');
     }
 
-    const canvas = createCanvas(canvasWidth, canvasHeight, toCanvasType(renderOptions.fileType));
+    const canvas = createCanvas(canvasWidth, canvasHeight, toCanvasType(renderOptions.filename));
     const ctx = canvas.getContext('2d');
-
-    const b = renderOptions.backgroundColor;
-    ctx.fillStyle = `rgba(${b.red}, ${b.green}, ${b.blue}, ${b.alpha})`;
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
     ctx.lineWidth = renderOptions.lineThicknessFrac * cellSize;
     ctx.lineCap = 'round';
 
-    // if (solution && maze.solved) {
-    //     renderSolution(c, maze, curved);
-    // }
+    ctx.fillStyle = renderOptions.backgroundColor.toStyle();
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+    if (solution) {
+        ctx.strokeStyle = renderOptions.solutionColor.toStyle();
+        renderSolution(ctx, maze, cellSize, renderOptions.cellMarginFrac, renderOptions.curved);
+    }
+
+    ctx.strokeStyle = renderOptions.wallColor.toStyle();
     renderMaze(ctx, maze, cellSize, renderOptions.cellMarginFrac, renderOptions.curved);
 
-    await fs.writeFile(renderOptions.filename, canvas.toBuffer());
+    let filename = renderOptions.filename;
+    if (solution) {
+        const index = renderOptions.filename.lastIndexOf('.');
+        if (index >= 0) {
+            filename = filename.substring(0, index) + SOLUTION_SUFFIX + filename.substring(index);
+        } else {
+            filename = renderOptions.filename + SOLUTION_SUFFIX;
+        }
+    }
+
+    await fs.writeFile(filename, canvas.toBuffer());
+}
+
+export async function saveMaze(maze: Maze, renderOptions: RenderOptions) {
+    await renderAndSave(maze, renderOptions, false);
+    if (renderOptions.solution && maze.solved) {
+        await renderAndSave(maze, renderOptions, true);
+    }
 }

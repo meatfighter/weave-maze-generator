@@ -1,16 +1,14 @@
-import { FileType } from '@/render/FileType';
 import { Color } from '@/render/Color';
 
 export class RenderOptions {
     constructor(public filename: string,
-                public fileType: FileType | undefined,
 
                 public curved = true,
                 public solution = true,
 
                 public cellSize = 25,
-                public imageWidth: number,
-                public imageHeight: number,
+                public imageWidth = 0,
+                public imageHeight = 0,
 
                 public lineThicknessFrac = 0.15,
                 public cellMarginFrac = 0.15,
