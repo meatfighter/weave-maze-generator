@@ -2,21 +2,21 @@ import { FileType } from '@/render/FileType';
 import { Color } from '@/render/Color';
 
 export class RenderOptions {
-    constructor(public fileType: FileType | null,
-                public filename: string,
+    constructor(public filename: string,
+                public fileType: FileType | undefined,
 
-                public curved: boolean,
-                public solution: boolean,
+                public curved = true,
+                public solution = true,
 
-                public tileSize: number,
+                public cellSize = 25,
                 public imageWidth: number,
                 public imageHeight: number,
 
-                public lineThicknessFrac: number,
-                public tileMarginFrac: number,
+                public lineThicknessFrac = 0.15,
+                public cellMarginFrac = 0.15,
 
-                public backgroundColor: Color,
-                public wallColor: Color,
-                public solutionColor: Color) {
+                public backgroundColor = new Color(255, 255, 255, 1),
+                public wallColor = new Color(0, 0, 0, 1),
+                public solutionColor = new Color(255, 0, 0, 1)) {
     }
 }

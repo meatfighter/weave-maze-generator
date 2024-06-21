@@ -1,5 +1,5 @@
 import { Maze } from '@/Maze';
-import { Tile } from '@/Tile';
+import { Cell } from '@/Cell';
 import { Node } from '@/Node';
 import { generatePermutations, shuffleArray } from '@/arrays';
 import { Terminal } from '@/Terminal';
@@ -52,13 +52,13 @@ function assignRegions(maze: Maze, stack: Node[]): Node[][] {
     let id = 0;
     for (let i = maze.height - 1; i >= 0; --i) {
         for (let j = maze.width - 1; j >= 0; --j) {
-            const tile = maze.tiles[i][j];
-            if (tile.lower.region < 0) {
-                nodes[id] = assignRegion(id, tile.lower, stack);
+            const cell = maze.cells[i][j];
+            if (cell.lower.region < 0) {
+                nodes[id] = assignRegion(id, cell.lower, stack);
                 ++id;
             }
-            if (tile.upper.region < 0) {
-                nodes[id] = assignRegion(id++, tile.upper, stack);
+            if (cell.upper.region < 0) {
+                nodes[id] = assignRegion(id++, cell.upper, stack);
                 ++id;
             }
         }
@@ -70,8 +70,8 @@ function findLoop(maze: Maze, seed: Node, stack: Node[]): boolean {
 
     for (let i = maze.height - 1; i >= 0; --i) {
         for (let j = maze.width - 1; j >= 0; --j) {
-            const tile = maze.tiles[i][j];
-            tile.lower.visitedBy = tile.upper.visitedBy = null;
+            const cell = maze.cells[i][j];
+            cell.lower.visitedBy = cell.upper.visitedBy = null;
         }
     }
 
@@ -132,289 +132,289 @@ function findLoop(maze: Maze, seed: Node, stack: Node[]): boolean {
     return false;
 }
 
-function wireCross(tile: Tile, northTile: Tile, eastTile: Tile, southTile: Tile, westTile: Tile,
+function wireCross(cell: Cell, northCell: Cell, eastCell: Cell, southCell: Cell, westCell: Cell,
                    northSouthHopsEastWest: boolean) {
 
     if (northSouthHopsEastWest) {
         // north-south hops east-west
 
-        if (tile.lower.north) {
-            tile.lower.north.south = tile.upper;
-            tile.upper.north = tile.lower.north;
-            tile.lower.north = null;
+        if (cell.lower.north) {
+            cell.lower.north.south = cell.upper;
+            cell.upper.north = cell.lower.north;
+            cell.lower.north = null;
         } else {
-            northTile.lower.south = tile.upper;
-            tile.upper.north = northTile.lower;
+            northCell.lower.south = cell.upper;
+            cell.upper.north = northCell.lower;
         }
 
-        if (tile.lower.south) {
-            tile.lower.south.north = tile.upper;
-            tile.upper.south = tile.lower.south;
-            tile.lower.south = null;
+        if (cell.lower.south) {
+            cell.lower.south.north = cell.upper;
+            cell.upper.south = cell.lower.south;
+            cell.lower.south = null;
         } else {
-            southTile.lower.north = tile.upper;
-            tile.upper.south = southTile.lower;
+            southCell.lower.north = cell.upper;
+            cell.upper.south = southCell.lower;
         }
 
-        if (!tile.lower.east) {
-            tile.lower.east = eastTile.lower;
-            eastTile.lower.west = tile.lower;
+        if (!cell.lower.east) {
+            cell.lower.east = eastCell.lower;
+            eastCell.lower.west = cell.lower;
         }
 
-        if (!tile.lower.west) {
-            tile.lower.west = westTile.lower;
-            westTile.lower.east = tile.lower;
+        if (!cell.lower.west) {
+            cell.lower.west = westCell.lower;
+            westCell.lower.east = cell.lower;
         }
     } else {
         // east-west hops north-south
 
-        if (tile.lower.east) {
-            tile.lower.east.west = tile.upper;
-            tile.upper.east = tile.lower.east;
-            tile.lower.east = null;
+        if (cell.lower.east) {
+            cell.lower.east.west = cell.upper;
+            cell.upper.east = cell.lower.east;
+            cell.lower.east = null;
         } else {
-            eastTile.lower.west = tile.upper;
-            tile.upper.east = eastTile.lower;
+            eastCell.lower.west = cell.upper;
+            cell.upper.east = eastCell.lower;
         }
 
-        if (tile.lower.west) {
-            tile.lower.west.east = tile.upper;
-            tile.upper.west = tile.lower.west;
-            tile.lower.west = null;
+        if (cell.lower.west) {
+            cell.lower.west.east = cell.upper;
+            cell.upper.west = cell.lower.west;
+            cell.lower.west = null;
         } else {
-            westTile.lower.east = tile.upper;
-            tile.upper.west = westTile.lower;
+            westCell.lower.east = cell.upper;
+            cell.upper.west = westCell.lower;
         }
 
-        if (!tile.lower.north) {
-            tile.lower.north = northTile.lower;
-            northTile.lower.south = tile.lower;
+        if (!cell.lower.north) {
+            cell.lower.north = northCell.lower;
+            northCell.lower.south = cell.lower;
         }
 
-        if (!tile.lower.south) {
-            tile.lower.south = southTile.lower;
-            southTile.lower.north = tile.lower;
+        if (!cell.lower.south) {
+            cell.lower.south = southCell.lower;
+            southCell.lower.north = cell.lower;
         }
     }
 }
 
-function addNorthEastLoop(maze: Maze, tile: Tile, stack: Node[], northSouthHopsEastWest: boolean): boolean {
+function addNorthEastLoop(maze: Maze, cell: Cell, stack: Node[], northSouthHopsEastWest: boolean): boolean {
 
-    const northTile = maze.tiles[tile.y - 1][tile.x];
-    if (northTile.isNotFlat()) {
+    const northCell = maze.cells[cell.y - 1][cell.x];
+    if (northCell.isNotFlat()) {
         return false;
     }
-    const northEastTile = maze.tiles[tile.y - 1][tile.x + 1];
-    if (northEastTile.isNotFlat()) {
+    const northEastCell = maze.cells[cell.y - 1][cell.x + 1];
+    if (northEastCell.isNotFlat()) {
         return false;
     }
-    const eastTile = maze.tiles[tile.y][tile.x + 1];
-    if (eastTile.isNotFlat()) {
+    const eastCell = maze.cells[cell.y][cell.x + 1];
+    if (eastCell.isNotFlat()) {
         return false;
     }
 
-    const southTile = maze.tiles[tile.y + 1][tile.x];
-    const westTile = maze.tiles[tile.y][tile.x - 1];
+    const southCell = maze.cells[cell.y + 1][cell.x];
+    const westCell = maze.cells[cell.y][cell.x - 1];
 
-    tile.backup();
-    northTile.backup();
-    northEastTile.backup();
-    eastTile.backup();
-    southTile.backup();
-    westTile.backup();
+    cell.backup();
+    northCell.backup();
+    northEastCell.backup();
+    eastCell.backup();
+    southCell.backup();
+    westCell.backup();
 
-    wireCross(tile, northTile, eastTile, southTile, westTile, northSouthHopsEastWest);
+    wireCross(cell, northCell, eastCell, southCell, westCell, northSouthHopsEastWest);
 
-    if (!northTile.lower.east) {
-        northTile.lower.east = northEastTile.lower;
-        northEastTile.lower.west = northTile.lower;
+    if (!northCell.lower.east) {
+        northCell.lower.east = northEastCell.lower;
+        northEastCell.lower.west = northCell.lower;
     }
-    if (!eastTile.lower.north) {
-        eastTile.lower.north = northEastTile.lower;
-        northEastTile.lower.south = eastTile.lower;
+    if (!eastCell.lower.north) {
+        eastCell.lower.north = northEastCell.lower;
+        northEastCell.lower.south = eastCell.lower;
     }
 
-    if (findLoop(maze, tile.lower, stack) || findLoop(maze, tile.upper, stack)) {
-        tile.restore();
-        northTile.restore();
-        northEastTile.restore();
-        eastTile.restore();
-        southTile.restore();
-        westTile.restore();
+    if (findLoop(maze, cell.lower, stack) || findLoop(maze, cell.upper, stack)) {
+        cell.restore();
+        northCell.restore();
+        northEastCell.restore();
+        eastCell.restore();
+        southCell.restore();
+        westCell.restore();
         return false
     }
 
     return true;
 }
 
-function addSouthEastLoop(maze: Maze, tile: Tile, stack: Node[], northSouthHopsEastWest: boolean): boolean {
+function addSouthEastLoop(maze: Maze, cell: Cell, stack: Node[], northSouthHopsEastWest: boolean): boolean {
 
-    const southTile = maze.tiles[tile.y + 1][tile.x];
-    if (southTile.isNotFlat()) {
+    const southCell = maze.cells[cell.y + 1][cell.x];
+    if (southCell.isNotFlat()) {
         return false;
     }
-    const southEastTile = maze.tiles[tile.y + 1][tile.x + 1];
-    if (southEastTile.isNotFlat()) {
+    const southEastCell = maze.cells[cell.y + 1][cell.x + 1];
+    if (southEastCell.isNotFlat()) {
         return false;
     }
-    const eastTile = maze.tiles[tile.y][tile.x + 1];
-    if (eastTile.isNotFlat()) {
+    const eastCell = maze.cells[cell.y][cell.x + 1];
+    if (eastCell.isNotFlat()) {
         return false;
     }
 
-    const northTile = maze.tiles[tile.y - 1][tile.x];
-    const westTile = maze.tiles[tile.y][tile.x - 1];
+    const northCell = maze.cells[cell.y - 1][cell.x];
+    const westCell = maze.cells[cell.y][cell.x - 1];
 
-    tile.backup();
-    northTile.backup();
-    southEastTile.backup();
-    eastTile.backup();
-    southTile.backup();
-    westTile.backup();
+    cell.backup();
+    northCell.backup();
+    southEastCell.backup();
+    eastCell.backup();
+    southCell.backup();
+    westCell.backup();
 
-    wireCross(tile, northTile, eastTile, southTile, westTile, northSouthHopsEastWest);
+    wireCross(cell, northCell, eastCell, southCell, westCell, northSouthHopsEastWest);
 
-    if (!southTile.lower.east) {
-        southTile.lower.east = southEastTile.lower;
-        southEastTile.lower.west = southTile.lower;
+    if (!southCell.lower.east) {
+        southCell.lower.east = southEastCell.lower;
+        southEastCell.lower.west = southCell.lower;
     }
-    if (!eastTile.lower.south) {
-        eastTile.lower.south = southEastTile.lower;
-        southEastTile.lower.north = eastTile.lower;
+    if (!eastCell.lower.south) {
+        eastCell.lower.south = southEastCell.lower;
+        southEastCell.lower.north = eastCell.lower;
     }
 
-    if (findLoop(maze, tile.lower, stack) || findLoop(maze, tile.upper, stack)) {
-        tile.restore();
-        northTile.restore();
-        southEastTile.restore();
-        eastTile.restore();
-        southTile.restore();
-        westTile.restore();
+    if (findLoop(maze, cell.lower, stack) || findLoop(maze, cell.upper, stack)) {
+        cell.restore();
+        northCell.restore();
+        southEastCell.restore();
+        eastCell.restore();
+        southCell.restore();
+        westCell.restore();
         return false
     }
 
     return true;
 }
 
-function addSouthWestLoop(maze: Maze, tile: Tile, stack: Node[], northSouthHopsEastWest: boolean): boolean {
+function addSouthWestLoop(maze: Maze, cell: Cell, stack: Node[], northSouthHopsEastWest: boolean): boolean {
 
-    const southTile = maze.tiles[tile.y + 1][tile.x];
-    if (southTile.isNotFlat()) {
+    const southCell = maze.cells[cell.y + 1][cell.x];
+    if (southCell.isNotFlat()) {
         return false;
     }
-    const southWestTile = maze.tiles[tile.y + 1][tile.x - 1];
-    if (southWestTile.isNotFlat()) {
+    const southWestCell = maze.cells[cell.y + 1][cell.x - 1];
+    if (southWestCell.isNotFlat()) {
         return false;
     }
-    const westTile = maze.tiles[tile.y][tile.x - 1];
-    if (westTile.isNotFlat()) {
+    const westCell = maze.cells[cell.y][cell.x - 1];
+    if (westCell.isNotFlat()) {
         return false;
     }
 
-    const northTile = maze.tiles[tile.y - 1][tile.x];
-    const eastTile = maze.tiles[tile.y][tile.x + 1];
+    const northCell = maze.cells[cell.y - 1][cell.x];
+    const eastCell = maze.cells[cell.y][cell.x + 1];
 
-    tile.backup();
-    northTile.backup();
-    southWestTile.backup();
-    eastTile.backup();
-    southTile.backup();
-    westTile.backup();
+    cell.backup();
+    northCell.backup();
+    southWestCell.backup();
+    eastCell.backup();
+    southCell.backup();
+    westCell.backup();
 
-    wireCross(tile, northTile, eastTile, southTile, westTile, northSouthHopsEastWest);
+    wireCross(cell, northCell, eastCell, southCell, westCell, northSouthHopsEastWest);
 
-    if (!southTile.lower.west) {
-        southTile.lower.west = southWestTile.lower;
-        southWestTile.lower.east = southTile.lower;
+    if (!southCell.lower.west) {
+        southCell.lower.west = southWestCell.lower;
+        southWestCell.lower.east = southCell.lower;
     }
-    if (!westTile.lower.south) {
-        westTile.lower.south = southWestTile.lower;
-        southWestTile.lower.north = westTile.lower;
+    if (!westCell.lower.south) {
+        westCell.lower.south = southWestCell.lower;
+        southWestCell.lower.north = westCell.lower;
     }
 
-    if (findLoop(maze, tile.lower, stack) || findLoop(maze, tile.upper, stack)) {
-        tile.restore();
-        northTile.restore();
-        southWestTile.restore();
-        eastTile.restore();
-        southTile.restore();
-        westTile.restore();
+    if (findLoop(maze, cell.lower, stack) || findLoop(maze, cell.upper, stack)) {
+        cell.restore();
+        northCell.restore();
+        southWestCell.restore();
+        eastCell.restore();
+        southCell.restore();
+        westCell.restore();
         return false
     }
 
     return true;
 }
 
-function addNorthWestLoop(maze: Maze, tile: Tile, stack: Node[], northSouthHopsEastWest: boolean): boolean {
+function addNorthWestLoop(maze: Maze, cell: Cell, stack: Node[], northSouthHopsEastWest: boolean): boolean {
 
-    const northTile = maze.tiles[tile.y - 1][tile.x];
-    if (northTile.isNotFlat()) {
+    const northCell = maze.cells[cell.y - 1][cell.x];
+    if (northCell.isNotFlat()) {
         return false;
     }
-    const northWestTile = maze.tiles[tile.y - 1][tile.x - 1];
-    if (northWestTile.isNotFlat()) {
+    const northWestCell = maze.cells[cell.y - 1][cell.x - 1];
+    if (northWestCell.isNotFlat()) {
         return false;
     }
-    const westTile = maze.tiles[tile.y][tile.x - 1];
-    if (westTile.isNotFlat()) {
+    const westCell = maze.cells[cell.y][cell.x - 1];
+    if (westCell.isNotFlat()) {
         return false;
     }
 
-    const southTile = maze.tiles[tile.y + 1][tile.x];
-    const eastTile = maze.tiles[tile.y][tile.x + 1];
+    const southCell = maze.cells[cell.y + 1][cell.x];
+    const eastCell = maze.cells[cell.y][cell.x + 1];
 
-    tile.backup();
-    northTile.backup();
-    northWestTile.backup();
-    eastTile.backup();
-    southTile.backup();
-    westTile.backup();
+    cell.backup();
+    northCell.backup();
+    northWestCell.backup();
+    eastCell.backup();
+    southCell.backup();
+    westCell.backup();
 
-    wireCross(tile, northTile, eastTile, southTile, westTile, northSouthHopsEastWest);
+    wireCross(cell, northCell, eastCell, southCell, westCell, northSouthHopsEastWest);
 
-    if (!northTile.lower.west) {
-        northTile.lower.west = northWestTile.lower;
-        northWestTile.lower.east = northTile.lower;
+    if (!northCell.lower.west) {
+        northCell.lower.west = northWestCell.lower;
+        northWestCell.lower.east = northCell.lower;
     }
-    if (!westTile.lower.north) {
-        westTile.lower.north = northWestTile.lower;
-        northWestTile.lower.south = westTile.lower;
+    if (!westCell.lower.north) {
+        westCell.lower.north = northWestCell.lower;
+        northWestCell.lower.south = westCell.lower;
     }
 
-    if (findLoop(maze, tile.lower, stack) || findLoop(maze, tile.upper, stack)) {
-        tile.restore();
-        northTile.restore();
-        northWestTile.restore();
-        eastTile.restore();
-        southTile.restore();
-        westTile.restore();
+    if (findLoop(maze, cell.lower, stack) || findLoop(maze, cell.upper, stack)) {
+        cell.restore();
+        northCell.restore();
+        northWestCell.restore();
+        eastCell.restore();
+        southCell.restore();
+        westCell.restore();
         return false
     }
 
     return true;
 }
 
-function addCross(maze: Maze, tile: Tile, stack: Node[], northSouthHopsEastWest: boolean): boolean {
+function addCross(maze: Maze, cell: Cell, stack: Node[], northSouthHopsEastWest: boolean): boolean {
 
-    const northTile = maze.tiles[tile.y - 1][tile.x];
-    const eastTile = maze.tiles[tile.y][tile.x + 1];
-    const southTile = maze.tiles[tile.y + 1][tile.x];
-    const westTile = maze.tiles[tile.y][tile.x - 1];
+    const northCell = maze.cells[cell.y - 1][cell.x];
+    const eastCell = maze.cells[cell.y][cell.x + 1];
+    const southCell = maze.cells[cell.y + 1][cell.x];
+    const westCell = maze.cells[cell.y][cell.x - 1];
 
-    tile.backup();
-    northTile.backup();
-    eastTile.backup();
-    southTile.backup();
-    westTile.backup();
+    cell.backup();
+    northCell.backup();
+    eastCell.backup();
+    southCell.backup();
+    westCell.backup();
 
-    wireCross(tile, northTile, eastTile, southTile, westTile, northSouthHopsEastWest);
+    wireCross(cell, northCell, eastCell, southCell, westCell, northSouthHopsEastWest);
 
-    if (findLoop(maze, tile.lower, stack) || findLoop(maze, tile.upper, stack)) {
-        tile.restore();
-        northTile.restore();
-        eastTile.restore();
-        southTile.restore();
-        westTile.restore();
+    if (findLoop(maze, cell.lower, stack) || findLoop(maze, cell.upper, stack)) {
+        cell.restore();
+        northCell.restore();
+        eastCell.restore();
+        southCell.restore();
+        westCell.restore();
         return false
     }
 
@@ -424,10 +424,10 @@ function addCross(maze: Maze, tile: Tile, stack: Node[], northSouthHopsEastWest:
 function addLoopsAndCrosses(maze: Maze, loopFraction: number, crossFraction: number, stack: Node[],
                             permutations: number[][]) {
 
-    const tiles: Tile[] = [];
+    const cells: Cell[] = [];
     for (let i = maze.height - 2; i >= 1; --i) {
         for (let j = maze.width - 2; j >= 1; --j) {
-            tiles.push(maze.tiles[i][j]);
+            cells.push(maze.cells[i][j]);
         }
     }
 
@@ -435,13 +435,13 @@ function addLoopsAndCrosses(maze: Maze, loopFraction: number, crossFraction: num
     let crosses = 0;
 
     const maxLoops = Math.round(maze.width * maze.height * loopFraction);
-    while (loops < maxLoops && tiles.length > 0) {
-        const index = Math.floor(tiles.length * Math.random());
-        const tile = tiles[index];
-        tiles.splice(index, 1);
+    while (loops < maxLoops && cells.length > 0) {
+        const index = Math.floor(cells.length * Math.random());
+        const cell = cells[index];
+        cells.splice(index, 1);
         const permutation = permutations[Math.floor(permutations.length * Math.random())];
         for (let i = permutation.length - 1; i >= 0; --i) {
-            let addLoop: (maze: Maze, tile: Tile, stack: Node[], northSouthHopsEastWest: boolean) => boolean;
+            let addLoop: (maze: Maze, cell: Cell, stack: Node[], northSouthHopsEastWest: boolean) => boolean;
             switch (permutation[i]) {
                 case 0:
                     addLoop = addNorthEastLoop;
@@ -457,11 +457,11 @@ function addLoopsAndCrosses(maze: Maze, loopFraction: number, crossFraction: num
                     break;
             }
             const northSouthHopsEastWest = Math.random() < 0.5;
-            if (addLoop(maze, tile, stack, northSouthHopsEastWest)) {
+            if (addLoop(maze, cell, stack, northSouthHopsEastWest)) {
                 ++crosses;
                 ++loops;
                 break;
-            } else if (addLoop(maze, tile, stack, !northSouthHopsEastWest)) {
+            } else if (addLoop(maze, cell, stack, !northSouthHopsEastWest)) {
                 ++crosses;
                 ++loops;
                 break;
@@ -469,24 +469,24 @@ function addLoopsAndCrosses(maze: Maze, loopFraction: number, crossFraction: num
         }
     }
 
-    tiles.length = 0;
+    cells.length = 0;
     for (let i = maze.height - 2; i >= 1; --i) {
         for (let j = maze.width - 2; j >= 1; --j) {
-            if (maze.tiles[i][j].isFlat()) {
-                tiles.push(maze.tiles[i][j]);
+            if (maze.cells[i][j].isFlat()) {
+                cells.push(maze.cells[i][j]);
             }
         }
     }
 
     const maxCrosses = Math.round(maze.width * maze.height * crossFraction);
-    while (crosses < maxCrosses && tiles.length > 0) {
-        const index = Math.floor(tiles.length * Math.random());
-        const tile = tiles[index];
-        tiles.splice(index, 1);
+    while (crosses < maxCrosses && cells.length > 0) {
+        const index = Math.floor(cells.length * Math.random());
+        const cell = cells[index];
+        cells.splice(index, 1);
         const northSouthHopsEastWest = Math.random() < 0.5;
-        if (addCross(maze, tile, stack, northSouthHopsEastWest)) {
+        if (addCross(maze, cell, stack, northSouthHopsEastWest)) {
             ++crosses;
-        } else if (addCross(maze, tile, stack, !northSouthHopsEastWest)) {
+        } else if (addCross(maze, cell, stack, !northSouthHopsEastWest)) {
             ++crosses;
         }
     }
@@ -519,9 +519,9 @@ function createSpanningTree(maze: Maze, nodes: Node[], permutations: number[][],
 
     for (let i = maxY; i >= 0; --i) {
         for (let j = maxX; j >= 0; --j) {
-            const tile = maze.tiles[i][j];
-            if (!(tile.upper.north || tile.upper.east)) {
-                nodes.push(tile.lower);
+            const cell = maze.cells[i][j];
+            if (!(cell.upper.north || cell.upper.east)) {
+                nodes.push(cell.lower);
             }
         }
     }
@@ -537,76 +537,76 @@ function createSpanningTree(maze: Maze, nodes: Node[], permutations: number[][],
             moveToEnd(nodes, node);
         }
 
-        const tile = node.tile;
+        const cell = node.cell;
         const permutation = permutations[Math.floor(permutations.length * Math.random())];
         for (let i = permutation.length - 1; i >= 0; --i) {
             switch (permutation[i]) {
                 case 0: {
                     // north
-                    if (tile.y === 0 || node.north) {
+                    if (cell.y === 0 || node.north) {
                         continue;
                     }
-                    const northTile = maze.tiles[tile.y - 1][tile.x];
-                    if (northTile.lower.region === node.region) {
+                    const northCell = maze.cells[cell.y - 1][cell.x];
+                    if (northCell.lower.region === node.region) {
                         continue;
                     }
-                    northTile.lower.south = node;
-                    node.north = northTile.lower;
+                    northCell.lower.south = node;
+                    node.north = northCell.lower;
                     if (longCorridors) {
                         moveToEnd(nodes, node.north);
                     }
-                    mergeRegions(northTile.lower.region, node.region, regions);
+                    mergeRegions(northCell.lower.region, node.region, regions);
                     continue outer;
                 }
                 case 1:   {
                     // east
-                    if (tile.x === maxX || node.east) {
+                    if (cell.x === maxX || node.east) {
                         continue;
                     }
-                    const eastTile = maze.tiles[tile.y][tile.x + 1];
-                    if (eastTile.lower.region === node.region) {
+                    const eastCell = maze.cells[cell.y][cell.x + 1];
+                    if (eastCell.lower.region === node.region) {
                         continue;
                     }
-                    eastTile.lower.west = node;
-                    node.east = eastTile.lower;
+                    eastCell.lower.west = node;
+                    node.east = eastCell.lower;
                     if (longCorridors) {
                         moveToEnd(nodes, node.east);
                     }
-                    mergeRegions(eastTile.lower.region, node.region, regions);
+                    mergeRegions(eastCell.lower.region, node.region, regions);
                     continue outer;
                 }
                 case 2: {
                     // south
-                    if (tile.y === maxY || node.south) {
+                    if (cell.y === maxY || node.south) {
                         continue;
                     }
-                    const southTile = maze.tiles[tile.y + 1][tile.x];
-                    if (southTile.lower.region === node.region) {
+                    const southCell = maze.cells[cell.y + 1][cell.x];
+                    if (southCell.lower.region === node.region) {
                         continue;
                     }
-                    southTile.lower.north = node;
-                    node.south = southTile.lower;
+                    southCell.lower.north = node;
+                    node.south = southCell.lower;
                     if (longCorridors) {
                         moveToEnd(nodes, node.south);
                     }
-                    mergeRegions(southTile.lower.region, node.region, regions);
+                    mergeRegions(southCell.lower.region, node.region, regions);
                     continue outer;
                 }
                 default: {
                     // west
-                    if (tile.x === 0 || node.west) {
+                    if (cell.x === 0 || node.west) {
                         continue;
                     }
-                    const westTile = maze.tiles[tile.y][tile.x - 1];
-                    if (westTile.lower.region === node.region) {
+                    const westCell = maze.cells[cell.y][cell.x - 1];
+                    if (westCell.lower.region === node.region) {
                         continue;
                     }
-                    westTile.lower.east = node;
-                    node.west = westTile.lower;
+                    westCell.lower.east = node;
+                    node.west = westCell.lower;
                     if (longCorridors) {
                         moveToEnd(nodes, node.west);
                     }
-                    mergeRegions(westTile.lower.region, node.region, regions);
+                    mergeRegions(westCell.lower.region, node.region, regions);
                     continue outer;
                 }
             }
@@ -620,35 +620,35 @@ function createSpanningTree(maze: Maze, nodes: Node[], permutations: number[][],
     }
 }
 
-function addTerminal(maze: Maze, terminal: Terminal): Tile {
+function addTerminal(maze: Maze, terminal: Terminal): Cell {
     switch (terminal.side) {
         case TerminalSide.NORTH: {
-            const tile = maze.tiles[0][Math.round(terminal.position * (maze.width - 1))];
+            const cell = maze.cells[0][Math.round(terminal.position * (maze.width - 1))];
             if (terminal.open) {
-                tile.lower.north2 = tile.lower.north = tile.lower;
+                cell.lower.north2 = cell.lower.north = cell.lower;
             }
-            return tile;
+            return cell;
         }
         case TerminalSide.EAST: {
-            const tile = maze.tiles[Math.round(terminal.position * (maze.height - 1))][maze.width - 1];
+            const cell = maze.cells[Math.round(terminal.position * (maze.height - 1))][maze.width - 1];
             if (terminal.open) {
-                tile.lower.east2 = tile.lower.east = tile.lower;
+                cell.lower.east2 = cell.lower.east = cell.lower;
             }
-            return tile;
+            return cell;
         }
         case TerminalSide.SOUTH: {
-            const tile = maze.tiles[maze.height - 1][Math.round(terminal.position * (maze.width - 1))];
+            const cell = maze.cells[maze.height - 1][Math.round(terminal.position * (maze.width - 1))];
             if (terminal.open) {
-                tile.lower.south2 = tile.lower.south = tile.lower;
+                cell.lower.south2 = cell.lower.south = cell.lower;
             }
-            return tile;
+            return cell;
         }
         default: {
-            const tile = maze.tiles[Math.round(terminal.position * (maze.height - 1))][0];
+            const cell = maze.cells[Math.round(terminal.position * (maze.height - 1))][0];
             if (terminal.open) {
-                tile.lower.west2 = tile.lower.west = tile.lower;
+                cell.lower.west2 = cell.lower.west = cell.lower;
             }
-            return tile;
+            return cell;
         }
     }
 }
@@ -667,8 +667,8 @@ export function generateMaze(width: number,
     addLoopsAndCrosses(maze, loopFraction, crossFraction, stack, permutations);
     const regions = assignRegions(maze, stack);
     createSpanningTree(maze, stack, permutations, regions, longCorridors);
-    maze.startTile = addTerminal(maze, startTerminal);
-    maze.endTile = addTerminal(maze, endTerminal);
+    maze.startCell = addTerminal(maze, startTerminal);
+    maze.endCell = addTerminal(maze, endTerminal);
 
     solveMaze(maze);
 

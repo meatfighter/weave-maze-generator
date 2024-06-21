@@ -1,6 +1,6 @@
 import { Node } from '@/Node';
 
-export class Tile {
+export class Cell {
     lower = new Node(this);
     upper = new Node(this);
 

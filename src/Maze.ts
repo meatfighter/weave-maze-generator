@@ -1,25 +1,25 @@
-import { Tile } from '@/Tile';
+import { Cell } from '@/Cell';
 
 export class Maze {
     width: number;
     height: number;
-    tiles: Tile[][];
-    startTile: Tile;
-    endTile: Tile;
+    cells: Cell[][];
+    startCell: Cell;
+    endCell: Cell;
 
     solved = false;
 
     constructor(width: number, height: number) {
         this.width = width;
         this.height = height;
-        this.tiles = new Array<Tile[]>(height);
+        this.cells = new Array<Cell[]>(height);
         for (let i = height - 1; i >= 0; --i) {
-            this.tiles[i] = new Array<Tile>(width);
+            this.cells[i] = new Array<Cell>(width);
             for (let j = width - 1; j >= 0; --j) {
-                this.tiles[i][j] = new Tile(j, i);
+                this.cells[i][j] = new Cell(j, i);
             }
         }
-        this.startTile = this.tiles[height - 1][0];
-        this.endTile = this.tiles[0][width - 1];
+        this.startCell = this.cells[height - 1][0];
+        this.endCell = this.cells[0][width - 1];
     }
 }

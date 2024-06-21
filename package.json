@@ -37,7 +37,6 @@
   },
   "dependencies": {
     "canvas": "^2.11.2",
-    "sharp": "^0.33.4",
     "tinyqueue": "^2.0.3"
   },
   "repository": {

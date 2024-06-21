@@ -1,4 +1,4 @@
-import sharp from 'sharp';
+import { promises as fs } from 'fs';
 import { Maze } from '@/Maze';
 import { CanvasRenderingContext2D, createCanvas } from 'canvas';
 import { PathOptimizer } from '@/render/PathOptimizer';
@@ -6,32 +6,29 @@ import { Segment } from '@/render/Segment';
 import { Point } from '@/render/Point';
 import { Line } from '@/render/Line';
 import { Arc } from '@/render/Arc';
-import { RenderingContext } from '@/render/RenderingContext';
 import { RenderOptions } from '@/render/RenderOptions';
+import { FileType } from '@/render/FileType';
+import { extractFilenameExtension } from '@/files';
 
-const TILE_SIZE = 25;
-const THICKNESS_FRAC = 0.15;
-const WALL_FRAC = 0.15;
-
-function renderPaths(c: RenderingContext, paths: Segment[][], curved: boolean) {
-    paths.forEach(ss => {
+function renderPaths(ctx: CanvasRenderingContext2D, paths: Segment[][], curved: boolean) {
+    paths.forEach(path => {
         let cursor = new Point();
-        ss.forEach(s => {
-            const p0 = s.getStart();
+        path.forEach(segment => {
+            const p0 = segment.getStart();
             if (!p0.equals(cursor)) {
-                c.moveTo(p0.x, p0.y);
+                ctx.moveTo(p0.x, p0.y);
             }
-            if (s.isLine()) {
-                const line = s as Line;
-                c.lineTo(line.p1.x, line.p1.y);
+            if (segment.isLine()) {
+                const line = segment as Line;
+                ctx.lineTo(line.p1.x, line.p1.y);
                 cursor = line.p1;
             } else {
-                const arc = s as Arc;
+                const arc = segment as Arc;
                 if (curved) {
-                    c.arcTo(arc.p1.x, arc.p1.y, arc.p2.x, arc.p2.y, arc.radius);
+                    ctx.arcTo(arc.p1.x, arc.p1.y, arc.p2.x, arc.p2.y, arc.radius);
                 } else {
-                    c.lineTo(arc.p1.x, arc.p1.y);
-                    c.lineTo(arc.p2.x, arc.p2.y);
+                    ctx.lineTo(arc.p1.x, arc.p1.y);
+                    ctx.lineTo(arc.p2.x, arc.p2.y);
                 }
                 cursor = arc.p2;
             }
@@ -39,51 +36,51 @@ function renderPaths(c: RenderingContext, paths: Segment[][], curved: boolean) {
     });
 }
 
-function renderSolution(c: RenderingContext, options: RenderOptions, maze: Maze) {
-    const d0 = WALL_FRAC * TILE_SIZE;
-    const d1 = (1 - WALL_FRAC) * TILE_SIZE;
-    const dm = TILE_SIZE / 2;
+function renderSolution(c: PathOptimizer, maze: Maze, cellSize: number, cellMarginFrac: number) {
+    const d0 = cellMarginFrac * cellSize;
+    const d1 = (1 - cellMarginFrac) * cellSize;
+    const dm = cellSize / 2;
 
     for (let i = maze.height - 1; i >= 0; --i) {
-        const oy = i * TILE_SIZE;
+        const oy = i * cellSize;
         for (let j = maze.width - 1; j >= 0; --j) {
-            const ox = j * TILE_SIZE;
-            const tile = maze.tiles[i][j];
+            const ox = j * cellSize;
+            const cell = maze.cells[i][j];
 
-            if (tile.upper.north2) {
+            if (cell.upper.north2) {
                 c.moveTo(ox + dm, oy);
-                c.lineTo(ox + dm, oy + TILE_SIZE);
-            } else if (tile.upper.east2) {
+                c.lineTo(ox + dm, oy + cellSize);
+            } else if (cell.upper.east2) {
                 c.moveTo(ox, oy + dm);
-                c.lineTo(ox + TILE_SIZE, oy + dm);
+                c.lineTo(ox + cellSize, oy + dm);
             }
 
-            if (tile.upper.north && tile.lower.east2) {
+            if (cell.upper.north && cell.lower.east2) {
                 c.moveTo(ox, oy + dm);
                 c.lineTo(ox + d0, oy + dm);
                 c.moveTo(ox + d1, oy + dm);
-                c.lineTo(ox + TILE_SIZE, oy + dm);
-            } else if (tile.upper.east && tile.lower.north2) {
+                c.lineTo(ox + cellSize, oy + dm);
+            } else if (cell.upper.east && cell.lower.north2) {
                 c.moveTo(ox + dm, oy);
                 c.lineTo(ox + dm, oy + d0);
                 c.moveTo(ox + dm, oy + d1);
-                c.lineTo(ox + dm, oy + TILE_SIZE);
+                c.lineTo(ox + dm, oy + cellSize);
             } else {
-                const lower = tile.lower;
+                const lower = cell.lower;
                 const value = (lower.north2 ? 0b1000 : 0) | (lower.east2 ? 0b0100 : 0) | (lower.south2 ? 0b0010 : 0)
                     | (lower.west2 ? 0b0001 : 0);
 
                 switch (value) {
                     case 0b1100:
                         c.moveTo(ox + dm, oy);
-                        c.arcTo(ox + dm, oy + dm, ox + TILE_SIZE, oy + dm, dm);
+                        c.arcTo(ox + dm, oy + dm, ox + cellSize, oy + dm, dm);
                         break;
                     case 0b0110:
-                        c.moveTo(ox + TILE_SIZE, oy + dm);
-                        c.arcTo(ox + dm, oy + dm, ox + dm, oy + TILE_SIZE, dm);
+                        c.moveTo(ox + cellSize, oy + dm);
+                        c.arcTo(ox + dm, oy + dm, ox + dm, oy + cellSize, dm);
                         break;
                     case 0b0011:
-                        c.moveTo(ox + dm, oy + TILE_SIZE);
+                        c.moveTo(ox + dm, oy + cellSize);
                         c.arcTo(ox + dm, oy + dm, ox, oy + dm, dm);
                         break;
                     case 0b1001:
@@ -93,11 +90,11 @@ function renderSolution(c: RenderingContext, options: RenderOptions, maze: Maze)
 
                     case 0b1010:
                         c.moveTo(ox + dm, oy);
-                        c.lineTo(ox + dm, oy + TILE_SIZE);
+                        c.lineTo(ox + dm, oy + cellSize);
                         break;
                     case 0b0101:
                         c.moveTo(ox, oy + dm);
-                        c.lineTo(ox + TILE_SIZE, oy + dm);
+                        c.lineTo(ox + cellSize, oy + dm);
                         break;
                 }
             }
@@ -105,49 +102,50 @@ function renderSolution(c: RenderingContext, options: RenderOptions, maze: Maze)
     }
 }
 
-function renderMaze(ctx: CanvasRenderingContext2D, maze: Maze, curved: boolean) {
+function renderMaze(ctx: CanvasRenderingContext2D, maze: Maze, cellSize: number, cellMarginFrac: number,
+                    curved: boolean) {
 
     const c = new PathOptimizer();
 
-    const d0 = WALL_FRAC * TILE_SIZE;
-    const d1 = (1 - WALL_FRAC) * TILE_SIZE;
-    const dm = TILE_SIZE / 2;
+    const d0 = cellMarginFrac * cellSize;
+    const d1 = (1 - cellMarginFrac) * cellSize;
+    const dm = cellSize / 2;
     const r0 = (d1 - d0) / 2;
 
     for (let i = maze.height - 1; i >= 0; --i) {
-        const oy = i * TILE_SIZE;
+        const oy = i * cellSize;
         for (let j = maze.width - 1; j >= 0; --j) {
-            const ox = j * TILE_SIZE;
-            const tile = maze.tiles[i][j];
+            const ox = j * cellSize;
+            const cell = maze.cells[i][j];
 
-            if (tile.upper.north) {
+            if (cell.upper.north) {
                 c.moveTo(ox + d0, oy);
-                c.lineTo(ox + d0, oy + TILE_SIZE);
+                c.lineTo(ox + d0, oy + cellSize);
                 c.moveTo(ox + d1, oy);
-                c.lineTo(ox + d1, oy + TILE_SIZE);
+                c.lineTo(ox + d1, oy + cellSize);
                 c.moveTo(ox, oy + d0);
                 c.lineTo(ox + d0, oy + d0);
                 c.moveTo(ox, oy + d1);
                 c.lineTo(ox + d0, oy + d1);
                 c.moveTo(ox + d1, oy + d0);
-                c.lineTo(ox + TILE_SIZE, oy + d0);
+                c.lineTo(ox + cellSize, oy + d0);
                 c.moveTo(ox + d1, oy + d1);
-                c.lineTo(ox + TILE_SIZE, oy + d1);
-            } else if (tile.upper.east) {
+                c.lineTo(ox + cellSize, oy + d1);
+            } else if (cell.upper.east) {
                 c.moveTo(ox, oy + d0);
-                c.lineTo(ox + TILE_SIZE, oy + d0);
+                c.lineTo(ox + cellSize, oy + d0);
                 c.moveTo(ox, oy + d1);
-                c.lineTo(ox + TILE_SIZE, oy + d1);
+                c.lineTo(ox + cellSize, oy + d1);
                 c.moveTo(ox + d0, oy);
                 c.lineTo(ox + d0, oy + d0);
                 c.moveTo(ox + d1, oy);
                 c.lineTo(ox + d1, oy + d0);
                 c.moveTo(ox + d0, oy + d1);
-                c.lineTo(ox + d0, oy + TILE_SIZE);
+                c.lineTo(ox + d0, oy + cellSize);
                 c.moveTo(ox + d1, oy + d1);
-                c.lineTo(ox + d1, oy + TILE_SIZE);
+                c.lineTo(ox + d1, oy + cellSize);
             } else {
-                const lower = tile.lower;
+                const lower = cell.lower;
                 const value = (lower.north ? 0b1000 : 0) | (lower.east ? 0b0100 : 0) | (lower.south ? 0b0010 : 0)
                     | (lower.west ? 0b0001 : 0);
 
@@ -160,18 +158,18 @@ function renderMaze(ctx: CanvasRenderingContext2D, maze: Maze, curved: boolean) 
                         c.lineTo(ox + d1, oy);
                         break;
                     case 0b0100:
-                        c.moveTo(ox + TILE_SIZE, oy + d0);
+                        c.moveTo(ox + cellSize, oy + d0);
                         c.lineTo(ox + dm, oy + d0);
                         c.arcTo(ox + d0, oy + d0, ox + d0, oy + dm, r0);
                         c.arcTo(ox + d0, oy + d1, ox + dm, oy + d1, r0);
-                        c.lineTo(ox + TILE_SIZE, oy + d1);
+                        c.lineTo(ox + cellSize, oy + d1);
                         break;
                     case 0b0010:
-                        c.moveTo(ox + d0, oy + TILE_SIZE);
+                        c.moveTo(ox + d0, oy + cellSize);
                         c.lineTo(ox + d0, oy + dm);
                         c.arcTo(ox + d0, oy + d0, ox + dm, oy + d0, r0);
                         c.arcTo(ox + d1, oy + d0, ox + d1, oy + dm, r0);
-                        c.lineTo(ox + d1, oy + TILE_SIZE);
+                        c.lineTo(ox + d1, oy + cellSize);
                         break;
                     case 0b0001:
                         c.moveTo(ox, oy + d0);
@@ -183,20 +181,20 @@ function renderMaze(ctx: CanvasRenderingContext2D, maze: Maze, curved: boolean) 
 
                     case 0b1100:
                         c.moveTo(ox + d0, oy);
-                        c.arcTo(ox + d0, oy + d1, ox + TILE_SIZE, oy + d1, d1);
+                        c.arcTo(ox + d0, oy + d1, ox + cellSize, oy + d1, d1);
                         c.moveTo(ox + d1, oy);
-                        c.arcTo(ox + d1, oy + d0, ox + TILE_SIZE, oy + d0, d0);
+                        c.arcTo(ox + d1, oy + d0, ox + cellSize, oy + d0, d0);
                         break;
                     case 0b0110:
-                        c.moveTo(ox + d0, oy + TILE_SIZE);
-                        c.arcTo(ox + d0, oy + d0, ox + TILE_SIZE, oy + d0, d1);
-                        c.moveTo(ox + d1, oy + TILE_SIZE);
-                        c.arcTo(ox + d1, oy + d1, ox + TILE_SIZE, oy + d1, d0);
+                        c.moveTo(ox + d0, oy + cellSize);
+                        c.arcTo(ox + d0, oy + d0, ox + cellSize, oy + d0, d1);
+                        c.moveTo(ox + d1, oy + cellSize);
+                        c.arcTo(ox + d1, oy + d1, ox + cellSize, oy + d1, d0);
                         break;
                     case 0b0011:
-                        c.moveTo(ox + d1, oy + TILE_SIZE);
+                        c.moveTo(ox + d1, oy + cellSize);
                         c.arcTo(ox + d1, oy + d0, ox, oy + d0, d1);
-                        c.moveTo(ox + d0, oy + TILE_SIZE);
+                        c.moveTo(ox + d0, oy + cellSize);
                         c.arcTo(ox + d0, oy + d1, ox, oy + d1, d0);
                         break;
                     case 0b1001:
@@ -208,32 +206,32 @@ function renderMaze(ctx: CanvasRenderingContext2D, maze: Maze, curved: boolean) 
 
                     case 0b1101:
                         c.moveTo(ox, oy + d1);
-                        c.lineTo(ox + TILE_SIZE, oy + d1);
+                        c.lineTo(ox + cellSize, oy + d1);
                         c.moveTo(ox + d1, oy);
-                        c.arcTo(ox + d1, oy + d0, ox + TILE_SIZE, oy + d0, d0);
+                        c.arcTo(ox + d1, oy + d0, ox + cellSize, oy + d0, d0);
                         c.moveTo(ox + d0, oy);
                         c.arcTo(ox + d0, oy + d0, ox, oy + d0, d0);
                         break;
                     case 0b1110:
                         c.moveTo(ox + d0, oy);
-                        c.lineTo(ox + d0, oy + TILE_SIZE);
+                        c.lineTo(ox + d0, oy + cellSize);
                         c.moveTo(ox + d1, oy);
-                        c.arcTo(ox + d1, oy + d0, ox + TILE_SIZE, oy + d0, d0);
-                        c.moveTo(ox + d1, oy + TILE_SIZE);
-                        c.arcTo(ox + d1, oy + d1, ox + TILE_SIZE, oy + d1, d0);
+                        c.arcTo(ox + d1, oy + d0, ox + cellSize, oy + d0, d0);
+                        c.moveTo(ox + d1, oy + cellSize);
+                        c.arcTo(ox + d1, oy + d1, ox + cellSize, oy + d1, d0);
                         break;
                     case 0b0111:
                         c.moveTo(ox, oy + d0);
-                        c.lineTo(ox + TILE_SIZE, oy + d0);
-                        c.moveTo(ox + d1, oy + TILE_SIZE);
-                        c.arcTo(ox + d1, oy + d1, ox + TILE_SIZE, oy + d1, d0);
-                        c.moveTo(ox + d0, oy + TILE_SIZE);
+                        c.lineTo(ox + cellSize, oy + d0);
+                        c.moveTo(ox + d1, oy + cellSize);
+                        c.arcTo(ox + d1, oy + d1, ox + cellSize, oy + d1, d0);
+                        c.moveTo(ox + d0, oy + cellSize);
                         c.arcTo(ox + d0, oy + d1, ox, oy + d1, d0);
                         break;
                     case 0b1011:
                         c.moveTo(ox + d1, oy);
-                        c.lineTo(ox + d1, oy + TILE_SIZE);
-                        c.moveTo(ox + d0, oy + TILE_SIZE);
+                        c.lineTo(ox + d1, oy + cellSize);
+                        c.moveTo(ox + d0, oy + cellSize);
                         c.arcTo(ox + d0, oy + d1, ox, oy + d1, d0);
                         c.moveTo(ox + d0, oy);
                         c.arcTo(ox + d0, oy + d0, ox, oy + d0, d0);
@@ -241,10 +239,10 @@ function renderMaze(ctx: CanvasRenderingContext2D, maze: Maze, curved: boolean) 
 
                     case 0b1111:
                         c.moveTo(ox + d1, oy);
-                        c.arcTo(ox + d1, oy + d0, ox + TILE_SIZE, oy + d0, d0);
-                        c.moveTo(ox + d1, oy + TILE_SIZE);
-                        c.arcTo(ox + d1, oy + d1, ox + TILE_SIZE, oy + d1, d0);
-                        c.moveTo(ox + d0, oy + TILE_SIZE);
+                        c.arcTo(ox + d1, oy + d0, ox + cellSize, oy + d0, d0);
+                        c.moveTo(ox + d1, oy + cellSize);
+                        c.arcTo(ox + d1, oy + d1, ox + cellSize, oy + d1, d0);
+                        c.moveTo(ox + d0, oy + cellSize);
                         c.arcTo(ox + d0, oy + d1, ox, oy + d1, d0);
                         c.moveTo(ox + d0, oy);
                         c.arcTo(ox + d0, oy + d0, ox, oy + d0, d0);
@@ -252,42 +250,70 @@ function renderMaze(ctx: CanvasRenderingContext2D, maze: Maze, curved: boolean) 
 
                     case 0b1010:
                         c.moveTo(ox + d0, oy);
-                        c.lineTo(ox + d0, oy + TILE_SIZE);
+                        c.lineTo(ox + d0, oy + cellSize);
                         c.moveTo(ox + d1, oy);
-                        c.lineTo(ox + d1, oy + TILE_SIZE);
+                        c.lineTo(ox + d1, oy + cellSize);
                         break;
                     case 0b0101:
                         c.moveTo(ox, oy + d0);
-                        c.lineTo(ox + TILE_SIZE, oy + d0);
+                        c.lineTo(ox + cellSize, oy + d0);
                         c.moveTo(ox, oy + d1);
-                        c.lineTo(ox + TILE_SIZE, oy + d1);
+                        c.lineTo(ox + cellSize, oy + d1);
                         break;
                 }
             }
         }
     }
 
-    ctx.strokeStyle = 'black';
-    ctx.lineWidth = THICKNESS_FRAC * TILE_SIZE;
-    ctx.lineCap = 'round';
     renderPaths(ctx, c.getPaths(), curved);
 }
 
-export async function saveImage(maze: Maze, curved: boolean, solution: boolean, filename: string) {
-
-    const width = TILE_SIZE * maze.width;
-    const height = TILE_SIZE * maze.height;
-
-    const canvas = createCanvas(width, height);
-    const c = canvas.getContext('2d');
-
-    c.fillStyle = 'white';
-    c.fillRect(0, 0, width, height);
-
-    if (solution && maze.solved) {
-        renderSolution(c, maze, curved);
+function toCanvasType(filename: string): 'pdf' | 'svg' | undefined {
+    switch (extractFilenameExtension(filename)) {
+        case 'pdf':
+            return 'pdf';
+        case 'svg':
+            return 'svg';
+        default:
+            return undefined;
     }
-    renderMaze(c, maze, curved);
+}
 
-    await sharp(canvas.toBuffer('image/png')).toFile(filename);
+export async function saveMaze(renderOptions: RenderOptions, maze: Maze) {
+
+    let canvasWidth: number;
+    let canvasHeight: number;
+    let cellSize: number;
+    if (renderOptions.cellSize > 0) {
+        cellSize = renderOptions.cellSize;
+        canvasWidth = cellSize * maze.width;
+        canvasHeight = cellSize * maze.height;
+    } else if (renderOptions.imageWidth > 0) {
+        canvasWidth = renderOptions.imageWidth;
+        cellSize = canvasWidth / maze.width;
+        canvasHeight = cellSize * maze.height;
+    } else if (renderOptions.imageHeight > 0) {
+        canvasHeight = renderOptions.imageHeight;
+        cellSize = canvasHeight / maze.height;
+        canvasWidth = cellSize * maze.width;
+    } else {
+        throw new Error('cellSize, imageWidth, or imageHeight must be >= 0');
+    }
+
+    const canvas = createCanvas(canvasWidth, canvasHeight, toCanvasType(renderOptions.fileType));
+    const ctx = canvas.getContext('2d');
+
+    const b = renderOptions.backgroundColor;
+    ctx.fillStyle = `rgba(${b.red}, ${b.green}, ${b.blue}, ${b.alpha})`;
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+    ctx.lineWidth = renderOptions.lineThicknessFrac * cellSize;
+    ctx.lineCap = 'round';
+
+    // if (solution && maze.solved) {
+    //     renderSolution(c, maze, curved);
+    // }
+    renderMaze(ctx, maze, cellSize, renderOptions.cellMarginFrac, renderOptions.curved);
+
+    await fs.writeFile(renderOptions.filename, canvas.toBuffer());
 }

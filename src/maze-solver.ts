@@ -1,15 +1,15 @@
 import { Maze } from '@/Maze';
-import { Tile } from '@/Tile';
+import { Cell } from '@/Cell';
 import { Node } from '@/Node';
 import { NodeQueue } from '@/NodeQueue';
 
-function heuristic(endTile: Tile, node: Node) {
-    const tile = node.tile;
-    return Math.abs(endTile.x - tile.x) + Math.abs(endTile.y - tile.y);
+function heuristic(endCell: Cell, node: Node) {
+    const cell = node.cell;
+    return Math.abs(endCell.x - cell.x) + Math.abs(endCell.y - cell.y);
 }
 
 function reconstructPath(maze: Maze) {
-    let node = maze.endTile.lower;
+    let node = maze.endCell.lower;
     while (node.visitedBy) {
         switch (node.visitedBy) {
             case node.north:
@@ -35,29 +35,29 @@ function reconstructPath(maze: Maze) {
 
 export function solveMaze(maze: Maze) {
 
-    const startTile = maze.startTile;
-    const endTile = maze.endTile;
+    const startCell = maze.startCell;
+    const endCell = maze.endCell;
 
     for (let i = maze.height - 1; i >= 0; --i) {
         for (let j = maze.width - 1; j >= 0; --j) {
-            const tile = maze.tiles[i][j];
-            const lower = tile.lower;
+            const cell = maze.cells[i][j];
+            const lower = cell.lower;
             lower.visitedBy = null;
             lower.cost = lower.estimatedFullCost = Number.POSITIVE_INFINITY;
-            const upper = tile.upper;
+            const upper = cell.upper;
             upper.visitedBy = null;
             upper.cost = upper.estimatedFullCost = Number.POSITIVE_INFINITY;
-            if (tile !== startTile && tile !== endTile) {
+            if (cell !== startCell && cell !== endCell) {
                 lower.north2 = lower.east2 = lower.south2 = lower.west2 = null;
                 upper.north2 = upper.east2 = upper.south2 = upper.west2 = null;
             }
         }
     }
 
-    const endNode = maze.endTile.lower;
-    const startNode = startTile.lower;
+    const endNode = maze.endCell.lower;
+    const startNode = startCell.lower;
     startNode.cost = 0;
-    startNode.estimatedFullCost = heuristic(endTile, startNode);
+    startNode.estimatedFullCost = heuristic(endCell, startNode);
 
     const queue = new NodeQueue(startNode);
     while (true) {
@@ -93,7 +93,7 @@ export function solveMaze(maze: Maze) {
             if (nextCost < neighbor.cost) {
                 neighbor.visitedBy = node;
                 neighbor.cost = nextCost;
-                neighbor.estimatedFullCost = nextCost + heuristic(endTile, neighbor);
+                neighbor.estimatedFullCost = nextCost + heuristic(endCell, neighbor);
                 queue.push(neighbor);
             }
         }

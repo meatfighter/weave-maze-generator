@@ -1,4 +1,4 @@
-import { Tile } from '@/Tile';
+import { Cell } from '@/Cell';
 
 export class Node {
     north: Node | null = null;
@@ -18,7 +18,7 @@ export class Node {
     cost = 0;
     estimatedFullCost = 0;
 
-    constructor(public tile: Tile) {
+    constructor(public cell: Cell) {
     }
 
     backup() {

@@ -4,9 +4,8 @@ import { Arc } from '@/render/Arc';
 import { Segment } from '@/render/Segment';
 import { HashMap } from '@/collections/HashMap';
 import { PathNode } from '@/render/PathNode';
-import { RenderingContext } from '@/render/RenderingContext';
 
-export class PathOptimizer implements RenderingContext {
+export class PathOptimizer {
 
     private cursor = new Point();
     private segments: Segment[] = [];

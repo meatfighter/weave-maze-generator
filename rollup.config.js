@@ -12,7 +12,6 @@ export default [
             interop: 'esModule',
         },
         external: [
-            'sharp',
             'canvas',
             'tinyqueue',
         ],
