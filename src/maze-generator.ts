@@ -432,9 +432,7 @@ function addLoopsAndCrosses(maze: Maze, loopFraction: number, crossFraction: num
     }
 
     let loops = 0;
-    let crosses = 0;
-
-    const maxLoops = Math.round(maze.width * maze.height * loopFraction);
+    const maxLoops = Math.round(cells.length * loopFraction);
     while (loops < maxLoops && cells.length > 0) {
         const index = Math.floor(cells.length * Math.random());
         const cell = cells[index];
@@ -458,11 +456,9 @@ function addLoopsAndCrosses(maze: Maze, loopFraction: number, crossFraction: num
             }
             const northSouthHopsEastWest = Math.random() < 0.5;
             if (addLoop(maze, cell, stack, northSouthHopsEastWest)) {
-                ++crosses;
                 ++loops;
                 break;
             } else if (addLoop(maze, cell, stack, !northSouthHopsEastWest)) {
-                ++crosses;
                 ++loops;
                 break;
             }
@@ -478,7 +474,8 @@ function addLoopsAndCrosses(maze: Maze, loopFraction: number, crossFraction: num
         }
     }
 
-    const maxCrosses = Math.round(maze.width * maze.height * crossFraction);
+    let crosses = 0;
+    const maxCrosses = Math.round(cells.length * crossFraction);
     while (crosses < maxCrosses && cells.length > 0) {
         const index = Math.floor(cells.length * Math.random());
         const cell = cells[index];
