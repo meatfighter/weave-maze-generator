@@ -5,6 +5,7 @@ import { generatePermutations, shuffleArray } from '@/utils/arrays';
 import { Terminal } from '@/maze/Terminal';
 import { TerminalSide } from '@/maze/TerminalSide';
 import { solveMaze } from '@/maze/maze-solver';
+import { MazeOptions } from '@/maze/MazeOptions';
 
 function assignRegion(region: number, seed: Node, stack: Node[]): Node[] {
 
@@ -800,23 +801,16 @@ function addTerminal(maze: Maze, terminal: Terminal): Cell | undefined {
     }
 }
 
-export function generateMaze(width: number,
-                             height: number,
-                             loopFraction: number,
-                             crossFraction: number,
-                             longCorridors: boolean,
-                             startTerminal: Terminal,
-                             endTerminal: Terminal,
-                             mask?: boolean[][]): Maze {
+export function generateMaze(options: MazeOptions): Maze {
 
-    const maze = new Maze(width, height, mask);
+    const maze = new Maze(options);
     const permutations = generatePermutations([ 0, 1, 2, 3]);
     const stack: Node[] = [];
-    addLoopsAndCrosses(maze, loopFraction, crossFraction, stack, permutations);
+    addLoopsAndCrosses(maze, options.loopFraction, options.crossFraction, stack, permutations);
     const regions = assignRegions(maze, stack);
-    createSpanningTree(maze, stack, permutations, regions, longCorridors);
-    maze.startCell = addTerminal(maze, startTerminal);
-    maze.endCell = addTerminal(maze, endTerminal);
+    createSpanningTree(maze, stack, permutations, regions, options.longCorridors);
+    maze.startCell = addTerminal(maze, options.startTerminal);
+    maze.endCell = addTerminal(maze, options.endTerminal);
 
     solveMaze(maze);
 
