@@ -13,7 +13,6 @@ export default [
         },
         external: [
             'canvas',
-            'tinyqueue',
         ],
         plugins: [
             resolve(),

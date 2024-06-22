@@ -2,6 +2,7 @@ import { Color } from '@/render/Color';
 
 export class RenderOptions {
     constructor(public filename: string,
+                public letterSizedPage = true, // only applicable to PDF
 
                 public curved = true,
                 public solution = true,

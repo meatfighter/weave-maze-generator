@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import { Maze } from '@/maze/Maze';
-import { CanvasRenderingContext2D, createCanvas } from 'canvas';
+import { Canvas, CanvasRenderingContext2D, createCanvas } from 'canvas';
 import { PathOptimizer } from '@/render/PathOptimizer';
 import { Segment } from '@/render/Segment';
 import { Point } from '@/render/Point';
@@ -10,6 +10,18 @@ import { RenderOptions } from '@/render/RenderOptions';
 import { extractFilenameExtension } from '@/utils/files';
 
 const SOLUTION_SUFFIX = '-solution';
+
+const LETTER_WIDTH_INCHES = 8.5;
+const LETTER_HEIGHT_INCHES = 11;
+const MARGIN_INCHES = .25;
+
+const DPI = 72;
+
+const LETTER_WIDTH_DOTS = DPI * LETTER_WIDTH_INCHES;
+const LETTER_HEIGHT_DOTS = DPI * LETTER_HEIGHT_INCHES;
+const MARGIN_DOTS = DPI * MARGIN_INCHES;
+const PRINTABLE_WIDTH_DOTS = LETTER_WIDTH_DOTS - 2 * MARGIN_DOTS;
+const PRINTABLE_HEIGHT_DOTS = LETTER_HEIGHT_DOTS - 2 * MARGIN_DOTS;
 
 function renderPaths(ctx: CanvasRenderingContext2D, paths: Segment[][], curved: boolean) {
     ctx.beginPath();
@@ -290,6 +302,8 @@ function toCanvasType(filename: string): 'pdf' | 'svg' | undefined {
 
 async function renderAndSave(maze: Maze, renderOptions: RenderOptions, solution: boolean) {
 
+    const canvasType = toCanvasType(renderOptions.filename);
+
     let canvasWidth: number;
     let canvasHeight: number;
     let cellSize: number;
@@ -309,8 +323,26 @@ async function renderAndSave(maze: Maze, renderOptions: RenderOptions, solution:
         throw new Error('cellSize, imageWidth, or imageHeight must be >= 0');
     }
 
-    const canvas = createCanvas(canvasWidth, canvasHeight, toCanvasType(renderOptions.filename));
-    const ctx = canvas.getContext('2d');
+    let canvas: Canvas;
+    let ctx: CanvasRenderingContext2D;
+    if (renderOptions.letterSizedPage && canvasType === 'pdf') {
+        canvas = createCanvas(LETTER_WIDTH_DOTS, LETTER_HEIGHT_DOTS, 'pdf');
+        ctx = canvas.getContext('2d');
+
+        let scale = PRINTABLE_WIDTH_DOTS / canvasWidth;
+        let width = PRINTABLE_WIDTH_DOTS;
+        let height = scale * canvasHeight;
+        if (height > PRINTABLE_HEIGHT_DOTS) {
+            scale = PRINTABLE_HEIGHT_DOTS / canvasHeight;
+            width = scale * canvasWidth;
+            height = PRINTABLE_HEIGHT_DOTS;
+        }
+        ctx.translate((LETTER_WIDTH_DOTS - width) / 2, (LETTER_HEIGHT_DOTS - height) / 2);
+        ctx.scale(scale, scale);
+    } else {
+        canvas = createCanvas(canvasWidth, canvasHeight, canvasType);
+        ctx = canvas.getContext('2d');
+    }
 
     ctx.lineWidth = renderOptions.lineThicknessFrac * cellSize;
     ctx.lineCap = renderOptions.curved ? 'round' : 'square';

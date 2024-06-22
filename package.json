@@ -36,8 +36,7 @@
     "weave-maze-generator": "./dist/main.bundle.js"
   },
   "dependencies": {
-    "canvas": "^2.11.2",
-    "tinyqueue": "^2.0.3"
+    "canvas": "^2.11.2"
   },
   "repository": {
     "type": "git",
