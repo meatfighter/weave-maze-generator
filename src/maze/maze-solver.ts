@@ -1,7 +1,7 @@
-import { Maze } from '@/Maze';
-import { Cell } from '@/Cell';
-import { Node } from '@/Node';
-import { NodeQueue } from '@/NodeQueue';
+import { Maze } from '@/maze/Maze';
+import { Cell } from '@/maze/Cell';
+import { Node } from '@/maze/Node';
+import { NodeQueue } from '@/maze/NodeQueue';
 
 function heuristic(endCell: Cell, node: Node) {
     const cell = node.cell;

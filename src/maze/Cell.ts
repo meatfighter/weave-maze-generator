@@ -1,4 +1,4 @@
-import { Node } from '@/Node';
+import { Node } from '@/maze/Node';
 
 export class Cell {
     lower = new Node(this);

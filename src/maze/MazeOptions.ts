@@ -1,4 +1,4 @@
-import { Terminal } from '@/Terminal';
+import { Terminal } from '@/maze/Terminal';
 
 export class MazeOptions {
     constructor(public width: number,

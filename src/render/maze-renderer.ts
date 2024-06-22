@@ -1,5 +1,5 @@
 import { promises as fs } from 'fs';
-import { Maze } from '@/Maze';
+import { Maze } from '@/maze/Maze';
 import { CanvasRenderingContext2D, createCanvas } from 'canvas';
 import { PathOptimizer } from '@/render/PathOptimizer';
 import { Segment } from '@/render/Segment';
@@ -7,7 +7,7 @@ import { Point } from '@/render/Point';
 import { Line } from '@/render/Line';
 import { Arc } from '@/render/Arc';
 import { RenderOptions } from '@/render/RenderOptions';
-import { extractFilenameExtension } from '@/files';
+import { extractFilenameExtension } from '@/utils/files';
 
 const SOLUTION_SUFFIX = '-solution';
 

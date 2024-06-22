@@ -1,4 +1,4 @@
-import { Cell } from '@/Cell';
+import { Cell } from '@/maze/Cell';
 
 export class Maze {
     width: number;

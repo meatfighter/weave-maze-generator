@@ -1,10 +1,10 @@
-import { Maze } from '@/Maze';
-import { Cell } from '@/Cell';
-import { Node } from '@/Node';
-import { generatePermutations, shuffleArray } from '@/arrays';
-import { Terminal } from '@/Terminal';
-import { TerminalSide } from '@/TerminalSide';
-import { solveMaze } from '@/maze-solver';
+import { Maze } from '@/maze/Maze';
+import { Cell } from '@/maze/Cell';
+import { Node } from '@/maze/Node';
+import { generatePermutations, shuffleArray } from '@/utils/arrays';
+import { Terminal } from '@/maze/Terminal';
+import { TerminalSide } from '@/maze/TerminalSide';
+import { solveMaze } from '@/maze/maze-solver';
 
 function assignRegion(region: number, seed: Node, stack: Node[]): Node[] {
 

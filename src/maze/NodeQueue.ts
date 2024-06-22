@@ -1,5 +1,5 @@
 import TinyQueue from 'tinyqueue';
-import { Node } from '@/Node';
+import { Node } from '@/maze/Node';
 
 export class NodeQueue {
     private queue: TinyQueue<Node>;
