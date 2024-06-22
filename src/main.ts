@@ -8,13 +8,14 @@ import { MazeOptions } from '@/maze/MazeOptions';
 // TODO
 // - command-line options
 // - save multiple file types if no file extension is provided
+// - longest path terminals!!!
 
 // - 1x1 -- 200x200 seems to be a good range
 
 async function main() {
 
     const mazeOptions = new MazeOptions();
-    mazeOptions.mask = await loadMask('maze-mask.png');
+    //mazeOptions.mask = await loadMask('maze-mask.png');
 
     const renderOptions = new RenderOptions('maze.png');
     renderOptions.backgroundColor = new Color(255, 255, 255, 0);

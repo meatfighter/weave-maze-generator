@@ -29,3 +29,5 @@ export function generatePermutations(arr: number[]): number[][] {
 
     return result;
 }
+
+export const permutations = generatePermutations([ 0, 1, 2, 3 ]);

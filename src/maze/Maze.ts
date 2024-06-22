@@ -5,8 +5,6 @@ export class Maze {
     width: number;
     height: number;
     cells: Cell[][];
-    startCell: Cell | undefined;
-    endCell: Cell | undefined;
 
     solved = false;
 

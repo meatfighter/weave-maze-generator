@@ -1,9 +1,7 @@
 import { Maze } from '@/maze/Maze';
 import { Cell } from '@/maze/Cell';
 import { Node } from '@/maze/Node';
-import { generatePermutations, shuffleArray } from '@/utils/arrays';
-import { Terminal } from '@/maze/Terminal';
-import { TerminalSide } from '@/maze/TerminalSide';
+import { permutations, shuffleArray } from '@/utils/arrays';
 import { solveMaze } from '@/maze/maze-solver';
 import { MazeOptions } from '@/maze/MazeOptions';
 
@@ -458,8 +456,7 @@ function addCross(maze: Maze, cell: Cell, stack: Node[], northSouthHopsEastWest:
     return true;
 }
 
-function addLoopsAndCrosses(maze: Maze, loopFraction: number, crossFraction: number, stack: Node[],
-                            permutations: number[][]) {
+function addLoopsAndCrosses(maze: Maze, loopFraction: number, crossFraction: number, stack: Node[]) {
 
     const cells: Cell[] = [];
     for (let i = maze.height - 2; i >= 1; --i) {
@@ -547,8 +544,7 @@ function moveToEnd(nodes: Node[], node: Node) {
     nodes.push(node);
 }
 
-function createSpanningTree(maze: Maze, nodes: Node[], permutations: number[][], regions: Node[][],
-                            longCorridors: boolean) {
+function createSpanningTree(maze: Maze, nodes: Node[], regions: Node[][], longCorridors: boolean) {
 
     const maxX = maze.width - 1;
     const maxY = maze.height - 1;
@@ -656,163 +652,12 @@ function createSpanningTree(maze: Maze, nodes: Node[], permutations: number[][],
     }
 }
 
-function findNorthCell(maze: Maze, x: number): Cell | undefined {
-    let dx = 0;
-    const cells = maze.cells;
-    while (true) {
-        const left = x - dx;
-        const right = x + dx;
-        if (left < 0 && right >= maze.width) {
-            return undefined;
-        }
-        ++dx;
-
-        if (left >= 0) {
-            for (let y = 0; y < maze.height; ++y) {
-                if (cells[y][left].white) {
-                    return cells[y][left];
-                }
-            }
-        }
-        if (left !== right && right < maze.width) {
-            for (let y = 0; y < maze.height; ++y) {
-                if (cells[y][right].white) {
-                    return cells[y][right];
-                }
-            }
-        }
-    }
-}
-
-function findEastCell(maze: Maze, y: number): Cell | undefined {
-    let dy = 0;
-    const cells = maze.cells;
-    while (true) {
-        const top = y - dy;
-        const bottom = y + dy;
-        if (top < 0 && bottom >= maze.height) {
-            return undefined;
-        }
-        ++dy;
-
-        if (top >= 0) {
-            for (let x = maze.width - 1; x >= 0; --x) {
-                if (cells[top][x].white) {
-                    return cells[top][x];
-                }
-            }
-        }
-        if (top !== bottom && bottom < maze.width) {
-            for (let x = maze.width - 1; x >= 0; --x) {
-                if (cells[bottom][x].white) {
-                    return cells[bottom][x];
-                }
-            }
-        }
-    }
-}
-
-function findSouthCell(maze: Maze, x: number): Cell | undefined {
-    let dx = 0;
-    const cells = maze.cells;
-    while (true) {
-        const left = x - dx;
-        const right = x + dx;
-        if (left < 0 && right >= maze.width) {
-            return undefined;
-        }
-        ++dx;
-
-        if (left >= 0) {
-            for (let y = maze.height - 1; y >= 0; --y) {
-                if (cells[y][left].white) {
-                    return cells[y][left];
-                }
-            }
-        }
-        if (left !== right && right < maze.width) {
-            for (let y = maze.height - 1; y >= 0; --y) {
-                if (cells[y][right].white) {
-                    return cells[y][right];
-                }
-            }
-        }
-    }
-}
-
-function findWestCell(maze: Maze, y: number): Cell | undefined {
-    let dy = 0;
-    const cells = maze.cells;
-    while (true) {
-        const top = y - dy;
-        const bottom = y + dy;
-        if (top < 0 && bottom >= maze.height) {
-            return undefined;
-        }
-        ++dy;
-
-        if (top >= 0) {
-            for (let x = 0; x < maze.width; ++x) {
-                if (cells[top][x].white) {
-                    return cells[top][x];
-                }
-            }
-        }
-        if (top !== bottom && bottom < maze.width) {
-            for (let x = 0; x < maze.width; ++x) {
-                if (cells[bottom][x].white) {
-                    return cells[bottom][x];
-                }
-            }
-        }
-    }
-}
-
-function addTerminal(maze: Maze, terminal: Terminal): Cell | undefined {
-    switch (terminal.side) {
-        case TerminalSide.NORTH: {
-            const cell = findNorthCell(maze, Math.round(terminal.position * (maze.width - 1)));
-            if (cell && terminal.open) {
-                cell.lower.north2 = cell.lower.north = cell.lower;
-            }
-            return cell;
-        }
-        case TerminalSide.EAST: {
-            const cell = findEastCell(maze, Math.round(terminal.position * (maze.height - 1)));
-            if (cell && terminal.open) {
-                cell.lower.east2 = cell.lower.east = cell.lower;
-            }
-            return cell;
-        }
-        case TerminalSide.SOUTH: {
-            const cell = findSouthCell(maze, Math.round(terminal.position * (maze.width - 1)));
-            if (cell && terminal.open) {
-                cell.lower.south2 = cell.lower.south = cell.lower;
-            }
-            return cell;
-        }
-        default: {
-            const cell = findWestCell(maze, Math.round(terminal.position * (maze.height - 1)));
-            if (cell && terminal.open) {
-                cell.lower.west2 = cell.lower.west = cell.lower;
-            }
-            return cell;
-        }
-    }
-}
-
 export function generateMaze(options: MazeOptions): Maze {
-
     const maze = new Maze(options);
-    const permutations = generatePermutations([ 0, 1, 2, 3]);
     const stack: Node[] = [];
-    addLoopsAndCrosses(maze, options.loopFraction, options.crossFraction, stack, permutations);
+    addLoopsAndCrosses(maze, options.loopFraction, options.crossFraction, stack);
     const regions = assignRegions(maze, stack);
-    createSpanningTree(maze, stack, permutations, regions, options.longCorridors);
-    maze.startCell = addTerminal(maze, options.startTerminal);
-    maze.endCell = addTerminal(maze, options.endTerminal);
-
+    createSpanningTree(maze, stack, regions, options.longCorridors);
     solveMaze(maze);
-
     return maze;
 }

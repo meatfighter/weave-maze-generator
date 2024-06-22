@@ -15,9 +15,6 @@ export class Node {
 
     region = -1;
 
-    cost = 0;
-    estimatedFullCost = 0;
-
     constructor(public cell: Cell) {
     }
 
