@@ -1,10 +1,10 @@
 import { Node } from '@/maze/Node';
 
 export class Cell {
-    lower = new Node(this);
-    upper = new Node(this);
+    readonly lower = new Node(this);
+    readonly upper = new Node(this);
 
-    constructor(public x: number, public y: number) {
+    constructor(public x: number, public y: number, public white: boolean) {
     }
 
     backup() {

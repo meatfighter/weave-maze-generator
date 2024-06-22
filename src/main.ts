@@ -14,14 +14,14 @@ import { loadMask } from '@/mask/mask-loader';
 
 async function main() {
 
-    await loadMask('face-mask.png');
+    const mask = await loadMask('maze-mask.png');
 
-    // const renderOptions = new RenderOptions('maze.png');
-    // renderOptions.backgroundColor = new Color(255, 255, 255, 0);
-    // renderOptions.curved = false;
-    //
-    // await saveMaze(generateMaze(30, 30, 0.05, .25, false,
-    //     new Terminal(TerminalSide.WEST, 1, true), new Terminal(TerminalSide.EAST, 0, true)), renderOptions);
+    const renderOptions = new RenderOptions('maze.png');
+    renderOptions.backgroundColor = new Color(255, 255, 255, 0);
+    renderOptions.curved = true;
+
+    await saveMaze(generateMaze(mask[0].length, mask.length, 0.05, .25, false,
+        new Terminal(TerminalSide.WEST, 1, true), new Terminal(TerminalSide.EAST, 0, true), mask), renderOptions);
 }
 
 void main();

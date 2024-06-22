@@ -313,7 +313,7 @@ async function renderAndSave(maze: Maze, renderOptions: RenderOptions, solution:
     const ctx = canvas.getContext('2d');
 
     ctx.lineWidth = renderOptions.lineThicknessFrac * cellSize;
-    ctx.lineCap = 'round';
+    ctx.lineCap = renderOptions.curved ? 'round' : 'square';
 
     ctx.fillStyle = renderOptions.backgroundColor.toStyle();
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);

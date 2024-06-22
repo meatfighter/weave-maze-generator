@@ -153,7 +153,7 @@ function createCells(data: Uint8ClampedArray, width: number, height: number): Ce
     return cells;
 }
 
-export async function loadMask(filename: string) {
+export async function loadMask(filename: string): Promise<boolean[][]> {
     const image = await loadImage(filename);
     const { width, height } = image;
     const canvas = createCanvas(width, height);
@@ -162,16 +162,12 @@ export async function loadMask(filename: string) {
     const cells = createCells(ctx.getImageData(0, 0, canvas.width, canvas.height).data, width, height);
     findRegions(cells, width, height);
     joinRegions(cells, width, height);
-
-    // TODO TESTING
-    const data = new Uint8ClampedArray(4 * width * height);
-    for (let y = 0, i = 0; y < height; ++y) {
-        for (let x = 0; x < width; ++x, i += 4) {
-            data[i] = data[i + 1] = data[i + 2] = cells[y][x].white ? 255 : 0;
-            data[i + 3] = 255;
+    const mask = new Array<boolean[]>(height);
+    for (let i = height - 1; i >= 0; --i) {
+        mask[i] = new Array<boolean>(width);
+        for (let j = width - 1; j >= 0; --j) {
+            mask[i][j] = cells[i][j].white;
         }
     }
-    const imageData = new ImageData(data, width, height);
-    ctx.putImageData(imageData, 0, 0);
-    await fs.writeFile('test.png', canvas.toBuffer());
+    return mask;
 }

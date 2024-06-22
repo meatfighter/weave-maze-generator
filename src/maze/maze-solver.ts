@@ -9,6 +9,9 @@ function heuristic(endCell: Cell, node: Node) {
 }
 
 function reconstructPath(maze: Maze) {
+    if (!maze.endCell) {
+        return;
+    }
     let node = maze.endCell.lower;
     while (node.visitedBy) {
         switch (node.visitedBy) {
@@ -34,6 +37,10 @@ function reconstructPath(maze: Maze) {
 }
 
 export function solveMaze(maze: Maze) {
+
+    if (!(maze.startCell && maze.endCell)) {
+        return;
+    }
 
     const startCell = maze.startCell;
     const endCell = maze.endCell;
