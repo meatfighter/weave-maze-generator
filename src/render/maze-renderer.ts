@@ -334,7 +334,7 @@ async function renderAndSave(maze: Maze, renderOptions: RenderOptions, solution:
         ctx = canvas.getContext('2d');
     }
 
-    ctx.lineWidth = renderOptions.lineThicknessFrac * cellSize;
+    ctx.lineWidth = renderOptions.lineWidthFrac * cellSize;
     ctx.lineCap = renderOptions.curved ? 'round' : 'square';
 
     ctx.fillStyle = renderOptions.backgroundColor.toStyle();

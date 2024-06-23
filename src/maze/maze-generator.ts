@@ -657,7 +657,7 @@ export function generateMaze(options: MazeOptions): Maze {
     const stack: Node[] = [];
     addLoopsAndCrosses(maze, options.loopFraction, options.crossFraction, stack);
     const regions = assignRegions(maze, stack);
-    createSpanningTree(maze, stack, regions, options.longCorridors);
+    createSpanningTree(maze, stack, regions, options.longPassages);
     solveMaze(maze);
     return maze;
 }

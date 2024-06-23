@@ -9,6 +9,41 @@ enum DimensionUnits {
     MILLIMETERS,
 }
 
+export function toPaperSize(paperSize: string | undefined): PaperSize {
+    if (!paperSize) {
+        paperSize = 'letter';
+    }
+    switch (paperSize.trim().toLowerCase()) {
+        case 'letter':
+            return PaperSize.LETTER;
+        case 'tabloid':
+            return PaperSize.TABLOID;
+        case 'legal':
+            return PaperSize.LEGAL;
+        case 'statement':
+            return PaperSize.STATEMENT;
+        case 'executive':
+            return PaperSize.EXECUTIVE;
+        case 'folio':
+            return PaperSize.FOLIO;
+        case 'quarto':
+            return PaperSize.QUARTO;
+        case 'a3':
+            return PaperSize.A3;
+        case 'a4':
+            return PaperSize.A4;
+        case 'a5':
+            return PaperSize.A5;
+        case 'b4':
+            return PaperSize.B4_JIS;
+        case 'b5':
+            return PaperSize.B5_JIS;
+        case 'fit':
+            return PaperSize.FIT;
+    }
+    throw new Error('Unknown paper size.');
+}
+
 export class PaperSize {
 
     readonly widthDots: number;
@@ -31,7 +66,6 @@ export class PaperSize {
         this.printableHeightDots = this.heightDots - 2 * MARGIN_DOTS;
     }
 
-    static UNSPECIFIED = new PaperSize('Unspecified', 0, 0);
     static LETTER = new PaperSize('Letter', 8.5, 11);
     static TABLOID = new PaperSize('Tabloid', 11, 17);
     static LEGAL = new PaperSize('Legal', 8.5, 14);
@@ -44,4 +78,5 @@ export class PaperSize {
     static A5 = new PaperSize('A5', 148, 210, DimensionUnits.MILLIMETERS);
     static B4_JIS = new PaperSize('B4 (JIS)', 257, 364, DimensionUnits.MILLIMETERS);
     static B5_JIS = new PaperSize('B5 (JIS)', 182, 257, DimensionUnits.MILLIMETERS);
+    static FIT = new PaperSize('Fit', 0, 0);
 }
