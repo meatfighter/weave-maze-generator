@@ -11,6 +11,45 @@ import { MazeOptions } from '@/maze/MazeOptions';
 
 // - 1x1 -- 200x200 seems to be a good range
 
+function printUsage() {
+    console.log(`
+Usage: weave-maze-generator [options]
+
+All options have default values.
+ 
+Maze Generation Options:
+  -i, --input "..."   
+  -w, --maze-width ...
+  -h, --maze-height ...
+  -x, --crosses ...
+  -l, --loops ...  
+  -L, --long-corridors
+    
+Output Options:
+  -o, --output "..."
+  -n, --not-letter-sized
+
+Dimension Options:
+  -S, --cell-size ...
+  -W, --image-width ...
+  -H, --image-height ...
+  
+Style Options:  
+  -s, --square  
+  -t, --line-thickness ...
+  -m, --cell-margin ...
+  
+Color Options:
+  -a, --wall-color ...  
+  -b, --background-color ...  
+  -c, --solution-color ...
+  
+Other Operations:
+  -v, --version              Shows version number
+  -p, --help                 Shows this help message
+    `);
+}
+
 async function main() {
 
     const mazeOptions = new MazeOptions();
