@@ -8,20 +8,9 @@ import { Line } from '@/render/Line';
 import { Arc } from '@/render/Arc';
 import { RenderOptions } from '@/render/RenderOptions';
 import { extractFilenameExtension } from '@/utils/files';
+import { PaperSize } from '@/render/PaperSize';
 
 const SOLUTION_SUFFIX = '-solution';
-
-const LETTER_WIDTH_INCHES = 8.5;
-const LETTER_HEIGHT_INCHES = 11;
-const MARGIN_INCHES = .25;
-
-const DPI = 72;
-
-const LETTER_WIDTH_DOTS = DPI * LETTER_WIDTH_INCHES;
-const LETTER_HEIGHT_DOTS = DPI * LETTER_HEIGHT_INCHES;
-const MARGIN_DOTS = DPI * MARGIN_INCHES;
-const PRINTABLE_WIDTH_DOTS = LETTER_WIDTH_DOTS - 2 * MARGIN_DOTS;
-const PRINTABLE_HEIGHT_DOTS = LETTER_HEIGHT_DOTS - 2 * MARGIN_DOTS;
 
 function renderPaths(ctx: CanvasRenderingContext2D, paths: Segment[][], curved: boolean) {
     ctx.beginPath();
@@ -325,19 +314,20 @@ async function renderAndSave(maze: Maze, renderOptions: RenderOptions, solution:
 
     let canvas: Canvas;
     let ctx: CanvasRenderingContext2D;
-    if (renderOptions.letterSizedPage && canvasType === 'pdf') {
-        canvas = createCanvas(LETTER_WIDTH_DOTS, LETTER_HEIGHT_DOTS, 'pdf');
+    if (canvasType === 'pdf' && renderOptions.paperSize !== PaperSize.UNSPECIFIED) {
+        canvas = createCanvas(renderOptions.paperSize.widthDots, renderOptions.paperSize.heightDots, 'pdf');
         ctx = canvas.getContext('2d');
 
-        let scale = PRINTABLE_WIDTH_DOTS / canvasWidth;
-        let width = PRINTABLE_WIDTH_DOTS;
+        let width = renderOptions.paperSize.printableWidthDots;
+        let scale = width / canvasWidth;
         let height = scale * canvasHeight;
-        if (height > PRINTABLE_HEIGHT_DOTS) {
-            scale = PRINTABLE_HEIGHT_DOTS / canvasHeight;
+        if (height > renderOptions.paperSize.printableHeightDots) {
+            height = renderOptions.paperSize.printableHeightDots;
+            scale = height / canvasHeight;
             width = scale * canvasWidth;
-            height = PRINTABLE_HEIGHT_DOTS;
         }
-        ctx.translate((LETTER_WIDTH_DOTS - width) / 2, (LETTER_HEIGHT_DOTS - height) / 2);
+        ctx.translate((renderOptions.paperSize.widthDots - width) / 2,
+                (renderOptions.paperSize.heightDots - height) / 2);
         ctx.scale(scale, scale);
     } else {
         canvas = createCanvas(canvasWidth, canvasHeight, canvasType);
@@ -350,13 +340,15 @@ async function renderAndSave(maze: Maze, renderOptions: RenderOptions, solution:
     ctx.fillStyle = renderOptions.backgroundColor.toStyle();
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
+    const cellMarginFrac = 1 - (renderOptions.passageWidthFrac / 2);
+
     if (solution) {
         ctx.strokeStyle = renderOptions.solutionColor.toStyle();
-        renderSolution(ctx, maze, cellSize, renderOptions.cellMarginFrac, renderOptions.curved);
+        renderSolution(ctx, maze, cellSize, cellMarginFrac, renderOptions.curved);
     }
 
     ctx.strokeStyle = renderOptions.wallColor.toStyle();
-    renderMaze(ctx, maze, cellSize, renderOptions.cellMarginFrac, renderOptions.curved);
+    renderMaze(ctx, maze, cellSize, cellMarginFrac, renderOptions.curved);
 
     let filename = renderOptions.filename;
     if (solution) {

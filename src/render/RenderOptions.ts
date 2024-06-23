@@ -1,8 +1,9 @@
 import { Color } from '@/render/Color';
+import { PaperSize } from '@/render/PaperSize';
 
 export class RenderOptions {
     constructor(public filename: string,
-                public letterSizedPage = true, // only applicable to PDF
+                public paperSize = PaperSize.LETTER, // only applicable to PDF
 
                 public curved = true,
                 public solution = true,
@@ -12,7 +13,7 @@ export class RenderOptions {
                 public imageHeight = 0,
 
                 public lineThicknessFrac = 0.15,
-                public cellMarginFrac = 0.15,
+                public passageWidthFrac = 0.7,
 
                 public backgroundColor = new Color(255, 255, 255, 1),
                 public wallColor = new Color(0, 0, 0, 1),
