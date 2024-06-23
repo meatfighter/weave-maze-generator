@@ -1,3 +1,5 @@
+import { DEFAULT_PAPER_SIZE } from '@/render/RenderOptions';
+
 const MARGIN_INCHES = .25;
 const DPI = 72;
 const MILLIMETERS_PER_INCH = 25.4;
@@ -11,7 +13,7 @@ enum DimensionUnits {
 
 export function toPaperSize(paperSize: string | undefined): PaperSize {
     if (!paperSize) {
-        paperSize = 'letter';
+        return DEFAULT_PAPER_SIZE;
     }
     switch (paperSize.trim().toLowerCase()) {
         case 'letter':

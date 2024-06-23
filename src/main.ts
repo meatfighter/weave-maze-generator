@@ -268,7 +268,7 @@ async function main() {
         longPassages = DEFAULT_LONG_PASSAGES;
     }
 
-    
+
 
 
     // const mazeOptions = new MazeOptions();
