@@ -12,7 +12,7 @@ import { PaperSize } from '@/render/PaperSize';
 
 const SOLUTION_SUFFIX = '-solution';
 
-function renderPaths(ctx: CanvasRenderingContext2D, paths: Segment[][], curved: boolean) {
+function renderPaths(ctx: CanvasRenderingContext2D, paths: Segment[][], roundedCorners: boolean) {
     ctx.beginPath();
     paths.forEach(path => {
         let cursor = new Point();
@@ -27,7 +27,7 @@ function renderPaths(ctx: CanvasRenderingContext2D, paths: Segment[][], curved: 
                 cursor = line.p1;
             } else {
                 const arc = segment as Arc;
-                if (curved) {
+                if (roundedCorners) {
                     ctx.arcTo(arc.p1.x, arc.p1.y, arc.p2.x, arc.p2.y, arc.radius);
                 } else {
                     ctx.lineTo(arc.p1.x, arc.p1.y);
@@ -41,7 +41,7 @@ function renderPaths(ctx: CanvasRenderingContext2D, paths: Segment[][], curved: 
 }
 
 function renderSolution(ctx: CanvasRenderingContext2D, maze: Maze, cellSize: number, cellMarginFrac: number,
-                        curved: boolean) {
+                        roundedCorners: boolean) {
 
     const c = new PathOptimizer();
 
@@ -109,11 +109,11 @@ function renderSolution(ctx: CanvasRenderingContext2D, maze: Maze, cellSize: num
         }
     }
 
-    renderPaths(ctx, c.getPaths(), curved);
+    renderPaths(ctx, c.getPaths(), roundedCorners);
 }
 
 function renderMaze(ctx: CanvasRenderingContext2D, maze: Maze, cellSize: number, cellMarginFrac: number,
-                    curved: boolean) {
+                    roundedCorners: boolean) {
 
     const c = new PathOptimizer();
 
@@ -275,7 +275,7 @@ function renderMaze(ctx: CanvasRenderingContext2D, maze: Maze, cellSize: number,
         }
     }
 
-    renderPaths(ctx, c.getPaths(), curved);
+    renderPaths(ctx, c.getPaths(), roundedCorners);
 }
 
 function toCanvasType(filename: string): 'pdf' | 'svg' | undefined {
@@ -314,7 +314,7 @@ async function renderAndSave(maze: Maze, renderOptions: RenderOptions, solution:
 
     let canvas: Canvas;
     let ctx: CanvasRenderingContext2D;
-    if (canvasType === 'pdf' && renderOptions.paperSize !== PaperSize.UNSPECIFIED) {
+    if (canvasType === 'pdf' && renderOptions.paperSize !== PaperSize.FIT) {
         canvas = createCanvas(renderOptions.paperSize.widthDots, renderOptions.paperSize.heightDots, 'pdf');
         ctx = canvas.getContext('2d');
 
@@ -335,7 +335,7 @@ async function renderAndSave(maze: Maze, renderOptions: RenderOptions, solution:
     }
 
     ctx.lineWidth = renderOptions.lineWidthFrac * cellSize;
-    ctx.lineCap = renderOptions.curved ? 'round' : 'square';
+    ctx.lineCap = renderOptions.roundedCorners ? 'round' : 'square';
 
     ctx.fillStyle = renderOptions.backgroundColor.toStyle();
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
@@ -344,11 +344,11 @@ async function renderAndSave(maze: Maze, renderOptions: RenderOptions, solution:
 
     if (solution) {
         ctx.strokeStyle = renderOptions.solutionColor.toStyle();
-        renderSolution(ctx, maze, cellSize, cellMarginFrac, renderOptions.curved);
+        renderSolution(ctx, maze, cellSize, cellMarginFrac, renderOptions.roundedCorners);
     }
 
     ctx.strokeStyle = renderOptions.wallColor.toStyle();
-    renderMaze(ctx, maze, cellSize, cellMarginFrac, renderOptions.curved);
+    renderMaze(ctx, maze, cellSize, cellMarginFrac, renderOptions.roundedCorners);
 
     let filename = renderOptions.filename;
     if (solution) {

@@ -1,5 +1,4 @@
-import { promises as fs } from 'fs'; // TODO REMOVE
-import { createCanvas, ImageData, loadImage } from 'canvas';
+import { createCanvas, loadImage } from 'canvas';
 import { Cell } from '@/mask/Cell';
 
 function mergeRegions(cells: Cell[][], width: number, height: number, cell: Cell, c: Cell) {
