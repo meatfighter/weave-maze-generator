@@ -1,9 +1,14 @@
 import { Color } from '@/render/Color';
 import { PaperSize } from '@/render/PaperSize';
+import { FileFormat } from '@/render/FileFormat';
 
+export const DEFAULT_FILE_FORMAT = FileFormat.ALL_FORMATS;
+export const DEFAULT_FILENAME_PREFIX = 'maze';
+
+export const DEFAULT_TIMESTAMP = true;
+export const DEFAULT_SOLUTION = true;
 export const DEFAULT_PAPER_SIZE = PaperSize.LETTER;
 export const DEFAULT_ROUNDED_CORNERS = true;
-export const DEFAULT_SOLUTION = true;
 
 export const MIN_CELL_SIZE = 1;
 export const DEFAULT_CELL_SIZE = 25;
@@ -25,11 +30,14 @@ export const DEFAULT_WALL_COLOR = new Color(0, 0, 0, 1);
 export const DEFAULT_SOLUTION_COLOR = new Color(255, 0, 0, 1);
 
 export class RenderOptions {
-    constructor(public readonly filename: string,
+    constructor(public readonly outputDirectory: string,
+                public readonly fileFormat = DEFAULT_FILE_FORMAT,
+                public readonly filenamePrefix = DEFAULT_FILENAME_PREFIX,
+                public readonly timestamp = DEFAULT_TIMESTAMP,
+                public readonly solution = DEFAULT_SOLUTION,
                 public readonly paperSize = DEFAULT_PAPER_SIZE, // only applicable to PDF
 
                 public readonly roundedCorners = DEFAULT_ROUNDED_CORNERS,
-                public readonly solution = DEFAULT_SOLUTION,
 
                 public readonly cellSize = DEFAULT_CELL_SIZE,
                 public readonly imageWidth = 0,

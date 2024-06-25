@@ -40,8 +40,7 @@ function renderPaths(ctx: CanvasRenderingContext2D, paths: Segment[][], roundedC
     ctx.stroke();
 }
 
-function renderSolution(ctx: CanvasRenderingContext2D, maze: Maze, cellSize: number, cellMarginFrac: number,
-                        roundedCorners: boolean) {
+function generateSolutionPaths(maze: Maze, cellSize: number, cellMarginFrac: number): Segment[][] {
 
     const c = new PathOptimizer();
 
@@ -109,11 +108,10 @@ function renderSolution(ctx: CanvasRenderingContext2D, maze: Maze, cellSize: num
         }
     }
 
-    renderPaths(ctx, c.getPaths(), roundedCorners);
+    return c.getPaths();
 }
 
-function renderMaze(ctx: CanvasRenderingContext2D, maze: Maze, cellSize: number, cellMarginFrac: number,
-                    roundedCorners: boolean) {
+function generateWallPaths(maze: Maze, cellSize: number, cellMarginFrac: number): Segment[][] {
 
     const c = new PathOptimizer();
 
@@ -275,7 +273,7 @@ function renderMaze(ctx: CanvasRenderingContext2D, maze: Maze, cellSize: number,
         }
     }
 
-    renderPaths(ctx, c.getPaths(), roundedCorners);
+    return c.getPaths();
 }
 
 function toCanvasType(filename: string): 'pdf' | 'svg' | undefined {
@@ -364,6 +362,9 @@ async function renderAndSave(maze: Maze, renderOptions: RenderOptions, solution:
 }
 
 export async function saveMaze(maze: Maze, renderOptions: RenderOptions) {
+
+
+
     await renderAndSave(maze, renderOptions, false);
     if (renderOptions.solution && maze.solved) {
         await renderAndSave(maze, renderOptions, true);

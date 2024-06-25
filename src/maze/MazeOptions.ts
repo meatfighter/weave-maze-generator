@@ -14,7 +14,7 @@ export const DEFAULT_LONG_PASSAGES = false;
 
 export class MazeOptions {
     constructor(public readonly width = DEFAULT_MAZE_SIZE,
-                public readonly height = DEFAULT_MAZE_HEIGHT,
+                public readonly height = DEFAULT_MAZE_SIZE,
                 public readonly loopFraction = DEFAULT_LOOP_FRACTION,
                 public readonly crossFraction = DEFAULT_CROSS_FRACTION,
                 public readonly longPassages = DEFAULT_LONG_PASSAGES,
