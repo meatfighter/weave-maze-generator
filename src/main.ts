@@ -35,6 +35,7 @@ import { Color, toColor } from '@/render/Color';
 import { toFileFormat } from '@/render/FileFormat';
 import { generateMaze } from '@/maze/maze-generator';
 import { saveMaze } from '@/render/maze-renderer';
+import * as console from 'console';
 
 // TODO
 // - command-line options
@@ -154,7 +155,7 @@ async function main() {
             },
             {
                 key: 'crosses',
-                flags: [ '-x, --crosses' ],
+                flags: [ '-x', '--crosses' ],
                 type: ParamType.FLOAT,
             },
             {
@@ -342,7 +343,7 @@ async function main() {
         loopsFrac /= 100;
     }
     if (loopsFrac < MIN_LOOP_FRACTION || loopsFrac > MAX_LOOP_FRACTION) {
-        console.log(`Crosses must be between ${100 * MIN_LOOP_FRACTION} and ${100 * MAX_LOOP_FRACTION}.`);
+        console.log(`Loops must be between ${100 * MIN_LOOP_FRACTION} and ${100 * MAX_LOOP_FRACTION}.`);
         return;
     }
 
