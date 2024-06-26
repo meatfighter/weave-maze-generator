@@ -22,3 +22,16 @@ export function toFileFormat(format: string | undefined): FileFormat {
             return DEFAULT_FILE_FORMAT;
     }
 }
+
+export function toFileExtensions(format: FileFormat): string[] {
+    switch (format) {
+        case FileFormat.PNG:
+            return [ 'png' ];
+        case FileFormat.SVG:
+            return [ 'svg' ];
+        case FileFormat.PDF:
+            return [ 'pdf' ];
+        default:
+            return [ 'png', 'svg', 'pdf' ];
+    }
+}

@@ -6,9 +6,14 @@ import { Segment } from '@/render/Segment';
 import { Point } from '@/render/Point';
 import { Line } from '@/render/Line';
 import { Arc } from '@/render/Arc';
-import { RenderOptions } from '@/render/RenderOptions';
-import { extractFilenameExtension } from '@/utils/files';
+import {
+    DEFAULT_PNG_BACKGROUND_COLOR,
+    DEFAULT_SVG_AND_PDF_BACKGROUND_COLOR,
+    RenderOptions
+} from '@/render/RenderOptions';
 import { PaperSize } from '@/render/PaperSize';
+import { getTimestamp } from '@/utils/time';
+import { toFileExtensions } from '@/render/FileFormat';
 
 const SOLUTION_SUFFIX = '-solution';
 
@@ -276,39 +281,9 @@ function generateWallPaths(maze: Maze, cellSize: number, cellMarginFrac: number)
     return c.getPaths();
 }
 
-function toCanvasType(filename: string): 'pdf' | 'svg' | undefined {
-    switch (extractFilenameExtension(filename)) {
-        case 'pdf':
-            return 'pdf';
-        case 'svg':
-            return 'svg';
-        default:
-            return undefined;
-    }
-}
-
-async function renderAndSave(maze: Maze, renderOptions: RenderOptions, solution: boolean) {
-
-    const canvasType = toCanvasType(renderOptions.filename);
-
-    let canvasWidth: number;
-    let canvasHeight: number;
-    let cellSize: number;
-    if (renderOptions.cellSize > 0) {
-        cellSize = renderOptions.cellSize;
-        canvasWidth = cellSize * maze.width;
-        canvasHeight = cellSize * maze.height;
-    } else if (renderOptions.imageWidth > 0) {
-        canvasWidth = renderOptions.imageWidth;
-        cellSize = canvasWidth / maze.width;
-        canvasHeight = cellSize * maze.height;
-    } else if (renderOptions.imageHeight > 0) {
-        canvasHeight = renderOptions.imageHeight;
-        cellSize = canvasHeight / maze.height;
-        canvasWidth = cellSize * maze.width;
-    } else {
-        throw new Error('cellSize, imageWidth, or imageHeight must be >= 0');
-    }
+async function renderAndSave(solutionPaths: Segment[][] | undefined, wallPaths: Segment[][],
+                             canvasType: 'pdf' | 'svg' | undefined, filename: string,
+                             renderOptions: RenderOptions) {
 
     let canvas: Canvas;
     let ctx: CanvasRenderingContext2D;
@@ -317,56 +292,65 @@ async function renderAndSave(maze: Maze, renderOptions: RenderOptions, solution:
         ctx = canvas.getContext('2d');
 
         let width = renderOptions.paperSize.printableWidthDots;
-        let scale = width / canvasWidth;
-        let height = scale * canvasHeight;
+        let scale = width / renderOptions.imageWidth;
+        let height = scale * renderOptions.imageHeight;
         if (height > renderOptions.paperSize.printableHeightDots) {
             height = renderOptions.paperSize.printableHeightDots;
-            scale = height / canvasHeight;
-            width = scale * canvasWidth;
+            scale = height / renderOptions.imageHeight;
+            width = scale * renderOptions.imageWidth;
         }
         ctx.translate((renderOptions.paperSize.widthDots - width) / 2,
                 (renderOptions.paperSize.heightDots - height) / 2);
         ctx.scale(scale, scale);
     } else {
-        canvas = createCanvas(canvasWidth, canvasHeight, canvasType);
+        canvas = createCanvas(renderOptions.imageWidth, renderOptions.imageHeight, canvasType);
         ctx = canvas.getContext('2d');
     }
 
-    ctx.lineWidth = renderOptions.lineWidthFrac * cellSize;
+    ctx.lineWidth = renderOptions.lineWidthFrac * renderOptions.cellSize;
     ctx.lineCap = renderOptions.roundedCorners ? 'round' : 'square';
 
-    ctx.fillStyle = renderOptions.backgroundColor.toStyle();
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-    const cellMarginFrac = 1 - (renderOptions.passageWidthFrac / 2);
-
-    if (solution) {
-        ctx.strokeStyle = renderOptions.solutionColor.toStyle();
-        renderSolution(ctx, maze, cellSize, cellMarginFrac, renderOptions.roundedCorners);
+    let backgroundColor = renderOptions.backgroundColor;
+    if (!backgroundColor) {
+        backgroundColor = canvasType ? DEFAULT_SVG_AND_PDF_BACKGROUND_COLOR : DEFAULT_PNG_BACKGROUND_COLOR;
+    }
+    if (backgroundColor.alpha > 0) {
+        ctx.fillStyle = backgroundColor.toStyle();
+        ctx.fillRect(0, 0, renderOptions.imageWidth, renderOptions.imageHeight);
     }
 
-    ctx.strokeStyle = renderOptions.wallColor.toStyle();
-    renderMaze(ctx, maze, cellSize, cellMarginFrac, renderOptions.roundedCorners);
+    if (solutionPaths && renderOptions.solutionColor.alpha > 0) {
+        ctx.strokeStyle = renderOptions.solutionColor.toStyle();
+        renderPaths(ctx, solutionPaths, renderOptions.roundedCorners);
+    }
 
-    let filename = renderOptions.filename;
-    if (solution) {
-        const index = renderOptions.filename.lastIndexOf('.');
-        if (index >= 0) {
-            filename = filename.substring(0, index) + SOLUTION_SUFFIX + filename.substring(index);
-        } else {
-            filename = renderOptions.filename + SOLUTION_SUFFIX;
-        }
+    if (renderOptions.wallColor.alpha > 0) {
+        ctx.strokeStyle = renderOptions.wallColor.toStyle();
+        renderPaths(ctx, wallPaths, renderOptions.roundedCorners);
     }
 
     await fs.writeFile(filename, canvas.toBuffer());
 }
 
 export async function saveMaze(maze: Maze, renderOptions: RenderOptions) {
+    const cellMarginFrac = (1 - renderOptions.passageWidthFrac) / 2;
+    const solutionPaths: Segment[][] | undefined = renderOptions.solution
+            ? generateSolutionPaths(maze, renderOptions.cellSize, cellMarginFrac) : undefined;
+    const wallPaths = generateWallPaths(maze, renderOptions.cellSize, cellMarginFrac);
+    const timestamp = getTimestamp();
 
-
-
-    await renderAndSave(maze, renderOptions, false);
-    if (renderOptions.solution && maze.solved) {
-        await renderAndSave(maze, renderOptions, true);
+    for (const extension of toFileExtensions(renderOptions.fileFormat)) {
+        const canvasType = (extension === 'png') ? undefined : (extension as 'pdf' | 'svg');
+        let filename = renderOptions.filenamePrefix;
+        for (const solution of renderOptions.solution ? [ false, true ] : [ false ]) {
+            if (solution) {
+                filename += SOLUTION_SUFFIX;
+            }
+            if (renderOptions.timestamp) {
+                filename += '-' + timestamp;
+            }
+            filename += '.' + extension;
+            await renderAndSave(solutionPaths, wallPaths, canvasType, filename, renderOptions);
+        }
     }
 }

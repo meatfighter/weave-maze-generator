@@ -31,23 +31,22 @@ export const DEFAULT_SOLUTION_COLOR = new Color(255, 0, 0, 1);
 
 export class RenderOptions {
     constructor(public readonly outputDirectory: string,
+
                 public readonly fileFormat = DEFAULT_FILE_FORMAT,
                 public readonly filenamePrefix = DEFAULT_FILENAME_PREFIX,
                 public readonly timestamp = DEFAULT_TIMESTAMP,
                 public readonly solution = DEFAULT_SOLUTION,
                 public readonly paperSize = DEFAULT_PAPER_SIZE, // only applicable to PDF
-
-                public readonly roundedCorners = DEFAULT_ROUNDED_CORNERS,
-
                 public readonly cellSize = DEFAULT_CELL_SIZE,
-                public readonly imageWidth = 0,
-                public readonly imageHeight = 0,
-
+                public readonly imageWidth = MIN_IMAGE_SIZE,
+                public readonly imageHeight = MIN_IMAGE_SIZE,
+                public readonly roundedCorners = DEFAULT_ROUNDED_CORNERS,
                 public readonly lineWidthFrac = DEFAULT_LINE_WIDTH_FRAC,
                 public readonly passageWidthFrac = DEFAULT_PASSAGE_WIDTH_FRAC,
-
-                public readonly backgroundColor = DEFAULT_PNG_BACKGROUND_COLOR,
                 public readonly wallColor = DEFAULT_WALL_COLOR,
-                public readonly solutionColor = DEFAULT_SOLUTION_COLOR) {
+                public readonly solutionColor = DEFAULT_SOLUTION_COLOR,
+
+                public readonly backgroundColor?: Color,
+                ) {
     }
 }

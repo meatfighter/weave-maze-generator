@@ -6,8 +6,6 @@ export class Maze {
     height: number;
     cells: Cell[][];
 
-    solved = false;
-
     constructor(options: MazeOptions) {
         if (options.mask) {
             this.width = options.mask[0].length;

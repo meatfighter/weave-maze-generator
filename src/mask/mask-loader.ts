@@ -152,6 +152,33 @@ function createCells(data: Uint8ClampedArray, width: number, height: number): Ce
     return cells;
 }
 
+function createMask(cells: Cell[][], width: number, height: number): boolean[][] {
+    let minX = Number.POSITIVE_INFINITY;
+    let maxX = Number.NEGATIVE_INFINITY;
+    let minY = Number.POSITIVE_INFINITY;
+    let maxY = Number.NEGATIVE_INFINITY;
+    for (let y = height - 1; y >= 0; --y) {
+        for (let x = width - 1; x >= 0; --x) {
+            if (cells[y][x].white) {
+                minX = Math.min(minX, x);
+                maxX = Math.max(maxX, x);
+                minY = Math.min(minY, y);
+                maxY = Math.max(maxY, y);
+            }
+        }
+    }
+    const w = maxX - minX + 1;
+    const h = maxY - minY + 1;
+    const mask = new Array<boolean[]>(h);
+    for (let y = h - 1; y >= 0; --y) {
+        mask[y] = new Array<boolean>(w);
+        for (let x = w - 1; x >= 0; --x) {
+            mask[y][x] = cells[minY + y][minX + x].white;
+        }
+    }
+    return mask;
+}
+
 export async function loadMask(filename: string): Promise<boolean[][]> {
     const image = await loadImage(filename);
     const { width, height } = image;
@@ -161,12 +188,5 @@ export async function loadMask(filename: string): Promise<boolean[][]> {
     const cells = createCells(ctx.getImageData(0, 0, canvas.width, canvas.height).data, width, height);
     findRegions(cells, width, height);
     joinRegions(cells, width, height);
-    const mask = new Array<boolean[]>(height);
-    for (let i = height - 1; i >= 0; --i) {
-        mask[i] = new Array<boolean>(width);
-        for (let j = width - 1; j >= 0; --j) {
-            mask[i][j] = cells[i][j].white;
-        }
-    }
-    return mask;
+    return createMask(cells, width, height);
 }

@@ -173,5 +173,4 @@ export function solveMaze(maze: Maze) {
     const stack: Node[] = [];
     borderNodes.forEach(node => flood(node, maze, borderNodes, bestSolution, stack));
     wireSolution(bestSolution, maze);
-    maze.solved = true;
 }

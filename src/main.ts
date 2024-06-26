@@ -1,7 +1,7 @@
 import {
-    DEFAULT_CROSS_FRACTION,
+    DEFAULT_CROSS_FRAC,
     DEFAULT_LONG_PASSAGES,
-    DEFAULT_LOOP_FRACTION,
+    DEFAULT_LOOP_FRAC,
     DEFAULT_MAZE_SIZE,
     MAX_CROSS_FRACTION,
     MAX_LOOP_FRACTION,
@@ -13,6 +13,7 @@ import {
 import { extractArgs, ParamType } from '@/utils/args';
 import { PaperSize, toPaperSize } from '@/render/PaperSize';
 import {
+    DEFAULT_CELL_SIZE,
     DEFAULT_FILENAME_PREFIX,
     DEFAULT_LINE_WIDTH_FRAC,
     DEFAULT_PASSAGE_WIDTH_FRAC,
@@ -33,19 +34,10 @@ import { loadMask } from '@/mask/mask-loader';
 import { Color, toColor } from '@/render/Color';
 import { toFileFormat } from '@/render/FileFormat';
 import { generateMaze } from '@/maze/maze-generator';
+import { saveMaze } from '@/render/maze-renderer';
 
 // TODO
 // - command-line options
-// - save multiple file types if no file extension is provided
-
-// - 1x1 -- 200x200 seems to be a good range
-
-// -o, --out-dir    Output directory (required)
-// -f, --format     Output file format (supported: png, svg, pdf) (default: all formats)
-// -p, --prefix     Output filename prefix (default: maze)
-// -n, --no-timestamp  Disables output filename timestamp
-
-
 
 function printUsage() {
     console.log(`
@@ -305,11 +297,13 @@ async function main() {
             console.log('Failed to load mask file.');
             return;
         }
-        if (mask.length < MIN_MAZE_SIZE || mask.length > MAX_MAZE_SIZE) {
+        mazeHeight = mask.length;
+        if (mazeHeight < MIN_MAZE_SIZE || mazeHeight > MAX_MAZE_SIZE) {
             console.log(`Mask height must be between ${MIN_MAZE_SIZE} and ${MAX_MAZE_SIZE}.`);
             return;
         }
-        if (mask[0].length < MIN_MAZE_SIZE || mask[0].length > MAX_MAZE_SIZE) {
+        mazeWidth = mask[0].length;
+        if (mazeWidth < MIN_MAZE_SIZE || mazeWidth > MAX_MAZE_SIZE) {
             console.log(`Mask width must be between ${MIN_MAZE_SIZE} and ${MAX_MAZE_SIZE}.`);
             return;
         }
@@ -330,24 +324,24 @@ async function main() {
         }
     }
 
-    let crossFraction = args.get('crosses') as number | undefined;
-    if (crossFraction === undefined) {
-        crossFraction = DEFAULT_CROSS_FRACTION;
+    let crossFrac = args.get('crosses') as number | undefined;
+    if (crossFrac === undefined) {
+        crossFrac = DEFAULT_CROSS_FRAC;
     } else {
-        crossFraction /= 100;
+        crossFrac /= 100;
     }
-    if (crossFraction < MIN_CROSS_FRACTION || crossFraction > MAX_CROSS_FRACTION) {
+    if (crossFrac < MIN_CROSS_FRACTION || crossFrac > MAX_CROSS_FRACTION) {
         console.log(`Crosses must be between ${100 * MIN_CROSS_FRACTION} and ${100 * MAX_CROSS_FRACTION}.`);
         return;
     }
 
-    let loopsFraction = args.get('loops') as number | undefined;
-    if (loopsFraction === undefined) {
-        loopsFraction = DEFAULT_LOOP_FRACTION;
+    let loopsFrac = args.get('loops') as number | undefined;
+    if (loopsFrac === undefined) {
+        loopsFrac = DEFAULT_LOOP_FRAC;
     } else {
-        loopsFraction /= 100;
+        loopsFrac /= 100;
     }
-    if (loopsFraction < MIN_LOOP_FRACTION || loopsFraction > MAX_LOOP_FRACTION) {
+    if (loopsFrac < MIN_LOOP_FRACTION || loopsFrac > MAX_LOOP_FRACTION) {
         console.log(`Crosses must be between ${100 * MIN_LOOP_FRACTION} and ${100 * MAX_LOOP_FRACTION}.`);
         return;
     }
@@ -357,9 +351,12 @@ async function main() {
         longPassages = DEFAULT_LONG_PASSAGES;
     }
 
-    const cellSize = args.get('cell-size') as number | undefined;
-    const imageWidth = args.get('image-width') as number | undefined;
-    const imageHeight = args.get('image-height') as number | undefined;
+    let cellSize = args.get('cell-size') as number | undefined;
+    let imageWidth = args.get('image-width') as number | undefined;
+    let imageHeight = args.get('image-height') as number | undefined;
+    if (cellSize === undefined && imageWidth === undefined && imageHeight === undefined) {
+        cellSize = DEFAULT_CELL_SIZE;
+    }
     if (cellSize !== undefined) {
         if (imageWidth !== undefined || imageHeight !== undefined) {
             console.log('Exclusively specify either cell size, image width, or image height.');
@@ -369,10 +366,9 @@ async function main() {
             console.log(`Cell size must be at least ${MIN_CELL_SIZE}.`);
             return;
         }
-        if ((mazeWidth && cellSize * mazeWidth > MAX_IMAGE_SIZE)
-                || (mazeHeight && cellSize * mazeHeight > MAX_IMAGE_SIZE)
-                || (mask && cellSize * mask.length > MAX_IMAGE_SIZE)
-                || (mask && cellSize * mask[0].length > MAX_IMAGE_SIZE)) {
+        imageWidth = cellSize * mazeWidth;
+        imageHeight = cellSize * mazeHeight;
+        if (imageWidth > MAX_IMAGE_SIZE || imageHeight > MAX_IMAGE_SIZE) {
             console.log('Cell size too big.');
             return;
         }
@@ -385,11 +381,15 @@ async function main() {
             console.log(`Image width must be between ${MIN_IMAGE_SIZE} and ${MAX_IMAGE_SIZE}.`);
             return;
         }
+        cellSize = imageWidth / mazeWidth;
+        imageHeight = cellSize * mazeHeight;
     } else if (imageHeight !== undefined) {
         if (imageHeight < MIN_IMAGE_SIZE || imageHeight > MAX_IMAGE_SIZE) {
             console.log(`Image height must be between ${MIN_IMAGE_SIZE} and ${MAX_IMAGE_SIZE}.`);
             return;
         }
+        cellSize = imageHeight / mazeHeight;
+        imageWidth = cellSize * mazeWidth;
     }
 
     const roundedCorners = !(args.get('square') as boolean | undefined);
@@ -459,14 +459,10 @@ async function main() {
         return;
     }
 
-    const maze = generateMaze(new MazeOptions(mazeWidth, mazeHeight, loopsFraction, crossFraction, longPassages, mask));
-    const renderOptions = new RenderOptions(outputDirectory, fileFormat, filenamePrefix, timestamp, solution, paperSize, roundedCorners, cellSize, imageWidth, imageHeight, lineWidthFrac, passageWidthFrac, backgroundColor, wallColor, solutionColor);
-
-    // const renderOptions = new RenderOptions('maze.png');
-    // renderOptions.backgroundColor = new Color(255, 255, 255, 0);
-    // renderOptions.roundedCorners = true;
-    //
-    // await saveMaze(generateMaze(mazeOptions), renderOptions);
+    await saveMaze(generateMaze(new MazeOptions(mazeWidth, mazeHeight, loopsFrac, crossFrac, longPassages, mask)),
+            new RenderOptions(outputDirectory, fileFormat, filenamePrefix, timestamp, solution, paperSize, cellSize,
+                    imageWidth, imageHeight, roundedCorners, lineWidthFrac, passageWidthFrac, wallColor, solutionColor,
+                    backgroundColor));
 }
 
 void main();
