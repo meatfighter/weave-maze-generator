@@ -1,5 +1,3 @@
-import { DEFAULT_PAPER_SIZE } from '@/render/RenderOptions';
-
 const MARGIN_INCHES = .25;
 const DPI = 72;
 const MILLIMETERS_PER_INCH = 25.4;
@@ -68,17 +66,19 @@ export class PaperSize {
         this.printableHeightDots = this.heightDots - 2 * MARGIN_DOTS;
     }
 
-    static LETTER = new PaperSize('Letter', 8.5, 11);
-    static TABLOID = new PaperSize('Tabloid', 11, 17);
-    static LEGAL = new PaperSize('Legal', 8.5, 14);
-    static STATEMENT = new PaperSize('Statement', 5.5, 8.5);
-    static EXECUTIVE = new PaperSize('Executive', 7.25, 10.5);
-    static FOLIO = new PaperSize('Folio', 8.5, 13.5);
-    static QUARTO = new PaperSize('Quarto', 8.5, 10 + 5/6);
-    static A3 = new PaperSize('A3', 297, 420, DimensionUnits.MILLIMETERS);
-    static A4 = new PaperSize('A4', 210, 297, DimensionUnits.MILLIMETERS);
-    static A5 = new PaperSize('A5', 148, 210, DimensionUnits.MILLIMETERS);
-    static B4_JIS = new PaperSize('B4 (JIS)', 257, 364, DimensionUnits.MILLIMETERS);
-    static B5_JIS = new PaperSize('B5 (JIS)', 182, 257, DimensionUnits.MILLIMETERS);
-    static FIT = new PaperSize('Fit', 0, 0);
+    static readonly LETTER = new PaperSize('Letter', 8.5, 11);
+    static readonly TABLOID = new PaperSize('Tabloid', 11, 17);
+    static readonly LEGAL = new PaperSize('Legal', 8.5, 14);
+    static readonly STATEMENT = new PaperSize('Statement', 5.5, 8.5);
+    static readonly EXECUTIVE = new PaperSize('Executive', 7.25, 10.5);
+    static readonly FOLIO = new PaperSize('Folio', 8.5, 13.5);
+    static readonly QUARTO = new PaperSize('Quarto', 8.5, 10 + 5/6);
+    static readonly A3 = new PaperSize('A3', 297, 420, DimensionUnits.MILLIMETERS);
+    static readonly A4 = new PaperSize('A4', 210, 297, DimensionUnits.MILLIMETERS);
+    static readonly A5 = new PaperSize('A5', 148, 210, DimensionUnits.MILLIMETERS);
+    static readonly B4_JIS = new PaperSize('B4 (JIS)', 257, 364, DimensionUnits.MILLIMETERS);
+    static readonly B5_JIS = new PaperSize('B5 (JIS)', 182, 257, DimensionUnits.MILLIMETERS);
+    static readonly FIT = new PaperSize('Fit', 0, 0);
 }
+
+export const DEFAULT_PAPER_SIZE = PaperSize.LETTER;

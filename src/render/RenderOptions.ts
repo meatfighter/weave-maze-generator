@@ -1,13 +1,12 @@
 import { Color } from '@/render/Color';
-import { PaperSize } from '@/render/PaperSize';
 import { FileFormat } from '@/render/FileFormat';
+import { DEFAULT_PAPER_SIZE } from '@/render/PaperSize';
 
 export const DEFAULT_FILE_FORMAT = FileFormat.ALL_FORMATS;
 export const DEFAULT_FILENAME_PREFIX = 'maze';
 
 export const DEFAULT_TIMESTAMP = true;
 export const DEFAULT_SOLUTION = true;
-export const DEFAULT_PAPER_SIZE = PaperSize.LETTER;
 export const DEFAULT_ROUNDED_CORNERS = true;
 
 export const MIN_CELL_SIZE = 1;

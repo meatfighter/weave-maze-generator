@@ -341,8 +341,8 @@ export async function saveMaze(maze: Maze, renderOptions: RenderOptions) {
 
     for (const extension of toFileExtensions(renderOptions.fileFormat)) {
         const canvasType = (extension === 'png') ? undefined : (extension as 'pdf' | 'svg');
-        let filename = renderOptions.filenamePrefix;
         for (const solution of renderOptions.solution ? [ false, true ] : [ false ]) {
+            let filename = renderOptions.filenamePrefix;
             if (solution) {
                 filename += SOLUTION_SUFFIX;
             }
@@ -350,7 +350,7 @@ export async function saveMaze(maze: Maze, renderOptions: RenderOptions) {
                 filename += '-' + timestamp;
             }
             filename += '.' + extension;
-            await renderAndSave(solutionPaths, wallPaths, canvasType, filename, renderOptions);
+            await renderAndSave(solution ? solutionPaths : undefined, wallPaths, canvasType, filename, renderOptions);
         }
     }
 }
