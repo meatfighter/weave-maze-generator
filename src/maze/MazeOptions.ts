@@ -1,6 +1,6 @@
 export const MIN_MAZE_SIZE = 1;
 export const MAX_MAZE_SIZE = 200;
-export const DEFAULT_MAZE_SIZE = 40;
+export const DEFAULT_MAZE_SIZE = 30;
 
 export const MIN_LOOP_FRACTION = 0;
 export const MAX_LOOP_FRACTION = 1;

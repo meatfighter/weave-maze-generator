@@ -32,20 +32,20 @@ import {
 import { checkFileExists, ensureDirectoryExists } from '@/utils/files';
 import { loadMask } from '@/mask/mask-loader';
 import { Color, toColor } from '@/render/Color';
-import { toFileFormat } from '@/render/FileFormat';
+import { FileFormat, toFileFormat } from '@/render/FileFormat';
 import { generateMaze } from '@/maze/maze-generator';
 import { saveMaze } from '@/render/maze-renderer';
 import * as console from 'console';
 
-// TODO
-// - command-line options
+const DEFAULT_CROSS_PER = Math.round(100 * DEFAULT_CROSS_FRAC);
+const DEFAULT_LOOP_PER = Math.round(100 * DEFAULT_LOOP_FRAC);
 
 function printUsage() {
     console.log(`
 Usage: weave-maze-generator [options]
 
 Output:
-  -o, --out-dir "..."         Output directory (required)
+  -d, --destination "..."     Output directory (required)
   -f, --format                Output file format: png | svg | pdf (default: all three formats)
   -p, --prefix                Output filename prefix (default: ${DEFAULT_FILENAME_PREFIX})
   -n, --no-timestamp          Disables output filename timestamp
@@ -66,16 +66,16 @@ Output:
                                 fit            drawing dimensions establish the paper size 
 
 Rectangle Mazes:
-  -w, --maze-width ...        Number of cells spanning the width (default: 40, max: 200)
-  -h, --maze-height ...       Number of cells spanning the height (default: 40, max: 200)
+  -w, --maze-width ...        Number of cells spanning the width (default: ${DEFAULT_MAZE_SIZE}, max: ${MAX_MAZE_SIZE})
+  -h, --maze-height ...       Number of cells spanning the height (default: ${DEFAULT_MAZE_SIZE}, max: ${MAX_MAZE_SIZE})
   
 Custom-shaped Mazes:
   -m, --mask "..."            Filename of png image containing white pixels for maze cells and black or transparent
                               pixels for empty cells, with a maximum width and height of 200 pixels
 
 Passages:
-  -x, --crosses ...           Percentage of maze cells where two passages cross (default: 25)
-  -l, --loops ...             Percentage of maze cells where a passage loops over itself (default: 5)
+  -x, --crosses ...           Percentage of maze cells where two passages cross (default: ${DEFAULT_CROSS_PER})
+  -l, --loops ...             Percentage of maze cells where a passage loops over itself (default: ${DEFAULT_LOOP_PER})
   -L, --long                  Enables long passage generation.
 
 Dimensions (specify one only):
@@ -90,7 +90,7 @@ Corners:
   -s, --square                Enables square corners instead of the default rounded corners.
 
 Widths (percentage of cell size):
-  -d, --line-width ...        Wall and solution path line width (default: 15)
+  -i, --line-width ...        Wall and solution path line width (default: 15)
   -g, --passage-width ...     Maze passage width (default: 70)
 
 Colors (hexadecimal color codes: RRGGBB or RRGGBBAA):
@@ -109,8 +109,8 @@ async function main() {
     try {
         args = extractArgs([
             {
-                key: 'out-dir',
-                flags: [ '-o', '--out-dir' ],
+                key: 'destination',
+                flags: [ '-d', '--destination' ],
                 type: ParamType.STRING,
             },
             {
@@ -190,7 +190,7 @@ async function main() {
             },
             {
                 key: 'line-width',
-                flags: [ '-d', '--line-width' ],
+                flags: [ '-i', '--line-width' ],
                 type: ParamType.FLOAT,
             },
             {
@@ -241,14 +241,20 @@ async function main() {
         return;
     }
 
-    let outputDirectory = args.get('out-dir') as string | undefined;
+    let outputDirectory = args.get('destination') as string | undefined;
     if (!outputDirectory) {
         printUsage();
         return;
     }
     outputDirectory = outputDirectory.trim();
 
-    const fileFormat = toFileFormat(args.get('format') as string | undefined);
+    let fileFormat: FileFormat;
+    try {
+        fileFormat = toFileFormat(args.get('format') as string | undefined);
+    } catch (e) {
+        console.log((e as Error).message);
+        return;
+    }
 
     let filenamePrefix = args.get('prefix') as string | undefined;
     if (!filenamePrefix) {
@@ -285,27 +291,27 @@ async function main() {
     let mask: boolean[][] | undefined;
     if (maskFilename) {
         if (mazeWidth !== undefined || mazeHeight !== undefined) {
-            console.log('Specify either maze dimensions or a mask image, but not both.');
+            console.log('\nSpecify either maze dimensions or a mask image, but not both.\n');
             return;
         }
         if (!(await checkFileExists(maskFilename))) {
-            console.log('Mask file not found.');
+            console.log('\nMask file not found.\n');
             return;
         }
         try {
             mask = await loadMask(maskFilename);
         } catch {
-            console.log('Failed to load mask file.');
+            console.log('\nFailed to load mask file.\n');
             return;
         }
         mazeHeight = mask.length;
         if (mazeHeight < MIN_MAZE_SIZE || mazeHeight > MAX_MAZE_SIZE) {
-            console.log(`Mask height must be between ${MIN_MAZE_SIZE} and ${MAX_MAZE_SIZE}.`);
+            console.log(`\nMask height must be between ${MIN_MAZE_SIZE} and ${MAX_MAZE_SIZE}.\n`);
             return;
         }
         mazeWidth = mask[0].length;
         if (mazeWidth < MIN_MAZE_SIZE || mazeWidth > MAX_MAZE_SIZE) {
-            console.log(`Mask width must be between ${MIN_MAZE_SIZE} and ${MAX_MAZE_SIZE}.`);
+            console.log(`\nMask width must be between ${MIN_MAZE_SIZE} and ${MAX_MAZE_SIZE}.\n`);
             return;
         }
     } else {
@@ -313,14 +319,14 @@ async function main() {
             mazeWidth = DEFAULT_MAZE_SIZE;
         }
         if (!Number.isInteger(mazeWidth) || mazeWidth < MIN_MAZE_SIZE || mazeWidth > MAX_MAZE_SIZE) {
-            console.log(`Maze width must be an integer between ${MIN_MAZE_SIZE} and ${MAX_MAZE_SIZE}.`);
+            console.log(`\nMaze width must be an integer between ${MIN_MAZE_SIZE} and ${MAX_MAZE_SIZE}.\n`);
             return;
         }
         if (mazeHeight === undefined) {
             mazeHeight = DEFAULT_MAZE_SIZE;
         }
         if (!Number.isInteger(mazeHeight) || mazeHeight < MIN_MAZE_SIZE || mazeHeight > MAX_MAZE_SIZE) {
-            console.log(`Maze height must be an integer between ${MIN_MAZE_SIZE} and ${MAX_MAZE_SIZE}.`);
+            console.log(`\nMaze height must be an integer between ${MIN_MAZE_SIZE} and ${MAX_MAZE_SIZE}.\n`);
             return;
         }
     }
@@ -332,7 +338,7 @@ async function main() {
         crossFrac /= 100;
     }
     if (crossFrac < MIN_CROSS_FRACTION || crossFrac > MAX_CROSS_FRACTION) {
-        console.log(`Crosses must be between ${100 * MIN_CROSS_FRACTION} and ${100 * MAX_CROSS_FRACTION}.`);
+        console.log(`\nCrosses must be between ${100 * MIN_CROSS_FRACTION} and ${100 * MAX_CROSS_FRACTION}.\n`);
         return;
     }
 
@@ -343,7 +349,7 @@ async function main() {
         loopsFrac /= 100;
     }
     if (loopsFrac < MIN_LOOP_FRACTION || loopsFrac > MAX_LOOP_FRACTION) {
-        console.log(`Loops must be between ${100 * MIN_LOOP_FRACTION} and ${100 * MAX_LOOP_FRACTION}.`);
+        console.log(`\nLoops must be between ${100 * MIN_LOOP_FRACTION} and ${100 * MAX_LOOP_FRACTION}.\n`);
         return;
     }
 
@@ -360,33 +366,33 @@ async function main() {
     }
     if (cellSize !== undefined) {
         if (imageWidth !== undefined || imageHeight !== undefined) {
-            console.log('Exclusively specify either cell size, image width, or image height.');
+            console.log('\nExclusively specify either cell size, image width, or image height.\n');
             return;
         }
         if (cellSize < MIN_CELL_SIZE) {
-            console.log(`Cell size must be at least ${MIN_CELL_SIZE}.`);
+            console.log(`\nCell size must be at least ${MIN_CELL_SIZE}.\n`);
             return;
         }
         imageWidth = cellSize * mazeWidth;
         imageHeight = cellSize * mazeHeight;
         if (imageWidth > MAX_IMAGE_SIZE || imageHeight > MAX_IMAGE_SIZE) {
-            console.log('Cell size too big.');
+            console.log('\nCell size too big.\n');
             return;
         }
     } else if (imageWidth !== undefined) {
         if (imageHeight !== undefined) {
-            console.log('Exclusively specify either cell size, image width, or image height.');
+            console.log('\nExclusively specify either cell size, image width, or image height.\n');
             return;
         }
         if (imageWidth < MIN_IMAGE_SIZE || imageWidth > MAX_IMAGE_SIZE) {
-            console.log(`Image width must be between ${MIN_IMAGE_SIZE} and ${MAX_IMAGE_SIZE}.`);
+            console.log(`\nImage width must be between ${MIN_IMAGE_SIZE} and ${MAX_IMAGE_SIZE}.\n`);
             return;
         }
         cellSize = imageWidth / mazeWidth;
         imageHeight = cellSize * mazeHeight;
     } else if (imageHeight !== undefined) {
         if (imageHeight < MIN_IMAGE_SIZE || imageHeight > MAX_IMAGE_SIZE) {
-            console.log(`Image height must be between ${MIN_IMAGE_SIZE} and ${MAX_IMAGE_SIZE}.`);
+            console.log(`\nImage height must be between ${MIN_IMAGE_SIZE} and ${MAX_IMAGE_SIZE}.\n`);
             return;
         }
         cellSize = imageHeight / mazeHeight;
@@ -402,7 +408,7 @@ async function main() {
         lineWidthFrac /= 100;
     }
     if (lineWidthFrac < MIN_LINE_WIDTH_FRAC || lineWidthFrac > MAX_LINE_WIDTH_FRAC) {
-        console.log(`Line width must be between ${100 * MIN_LINE_WIDTH_FRAC} and ${100 * MAX_LINE_WIDTH_FRAC}.`);
+        console.log(`\nLine width must be between ${100 * MIN_LINE_WIDTH_FRAC} and ${100 * MAX_LINE_WIDTH_FRAC}.\n`);
         return;
     }
 
@@ -413,8 +419,8 @@ async function main() {
         passageWidthFrac /= 100;
     }
     if (passageWidthFrac < MIN_PASSAGE_WIDTH_FRAC || passageWidthFrac > MAX_PASSAGE_WIDTH_FRAC) {
-        console.log(`Passage width must be between ${100 * MIN_PASSAGE_WIDTH_FRAC} and ` +
-                `${100 * MAX_PASSAGE_WIDTH_FRAC}.`);
+        console.log(`\nPassage width must be between ${100 * MIN_PASSAGE_WIDTH_FRAC} and ` +
+                `${100 * MAX_PASSAGE_WIDTH_FRAC}.\n`);
         return;
     }
     
@@ -424,7 +430,7 @@ async function main() {
         try {
             wallColor = toColor(wallColorStr);
         } catch {
-            console.log('Invalid wall color.');
+            console.log('\nInvalid wall color.\n');
             return;
         }
     } else {
@@ -437,7 +443,7 @@ async function main() {
         try {
             backgroundColor = toColor(backgroundColorStr);
         } catch {
-            console.log('Invalid background color.');
+            console.log('\nInvalid background color.\n');
             return;
         }
     }
@@ -448,7 +454,7 @@ async function main() {
         try {
             solutionColor = toColor(solutionColorStr);
         } catch {
-            console.log('Invalid solution color.');
+            console.log('\nInvalid solution color.\n');
             return;
         }
     } else {
@@ -456,7 +462,7 @@ async function main() {
     }
 
     if (!(await ensureDirectoryExists(outputDirectory))) {
-        console.log('Failed to created output directory.');
+        console.log('\nFailed to created output directory.\n');
         return;
     }
 

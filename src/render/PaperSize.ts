@@ -41,7 +41,7 @@ export function toPaperSize(paperSize: string | undefined): PaperSize {
         case 'fit':
             return PaperSize.FIT;
     }
-    throw new Error('Unknown paper size.');
+    throw new Error('\nUnknown paper size.\n');
 }
 
 export class PaperSize {

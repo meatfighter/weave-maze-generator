@@ -1,3 +1,4 @@
+import * as path from 'path';
 import { promises as fs } from 'fs';
 import { Maze } from '@/maze/Maze';
 import { Canvas, CanvasRenderingContext2D, createCanvas } from 'canvas';
@@ -342,7 +343,7 @@ export async function saveMaze(maze: Maze, renderOptions: RenderOptions) {
     for (const extension of toFileExtensions(renderOptions.fileFormat)) {
         const canvasType = (extension === 'png') ? undefined : (extension as 'pdf' | 'svg');
         for (const solution of renderOptions.solution ? [ false, true ] : [ false ]) {
-            let filename = renderOptions.filenamePrefix;
+            let filename = renderOptions.outputDirectory + path.sep + renderOptions.filenamePrefix;
             if (solution) {
                 filename += SOLUTION_SUFFIX;
             }

@@ -19,7 +19,7 @@ export function toFileFormat(format: string | undefined): FileFormat {
         case 'pdf':
             return FileFormat.PDF;
         default:
-            return DEFAULT_FILE_FORMAT;
+            throw new Error('\nFile format must be either png, svg, or pdf.\n');
     }
 }
 
