@@ -1,5 +1,3 @@
-import { DEFAULT_FILE_FORMAT } from '@/render/RenderOptions';
-
 export enum FileFormat {
     PNG,
     SVG,
@@ -35,3 +33,5 @@ export function toFileExtensions(format: FileFormat): string[] {
             return [ 'png', 'svg', 'pdf' ];
     }
 }
+
+export const DEFAULT_FILE_FORMAT = FileFormat.ALL_FORMATS;

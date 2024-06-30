@@ -1,8 +1,7 @@
 import { Color } from '@/render/Color';
-import { FileFormat } from '@/render/FileFormat';
 import { DEFAULT_PAPER_SIZE } from '@/render/PaperSize';
+import { DEFAULT_FILE_FORMAT } from '@/render/FileFormat';
 
-export const DEFAULT_FILE_FORMAT = FileFormat.ALL_FORMATS;
 export const DEFAULT_FILENAME_PREFIX = 'maze';
 
 export const DEFAULT_TIMESTAMP = true;

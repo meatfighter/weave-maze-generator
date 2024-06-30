@@ -3,11 +3,11 @@ import {
     DEFAULT_LONG_PASSAGES,
     DEFAULT_LOOP_FRAC,
     DEFAULT_MAZE_SIZE,
-    MAX_CROSS_FRACTION,
-    MAX_LOOP_FRACTION,
+    MAX_CROSS_FRAC,
+    MAX_LOOP_FRAC,
     MAX_MAZE_SIZE, MazeOptions,
-    MIN_CROSS_FRACTION,
-    MIN_LOOP_FRACTION,
+    MIN_CROSS_FRAC,
+    MIN_LOOP_FRAC,
     MIN_MAZE_SIZE
 } from '@/maze/MazeOptions';
 import { extractArgs, ParamType } from '@/utils/args';
@@ -337,8 +337,8 @@ async function main() {
     } else {
         crossFrac /= 100;
     }
-    if (crossFrac < MIN_CROSS_FRACTION || crossFrac > MAX_CROSS_FRACTION) {
-        console.log(`\nCrosses must be between ${100 * MIN_CROSS_FRACTION} and ${100 * MAX_CROSS_FRACTION}.\n`);
+    if (crossFrac < MIN_CROSS_FRAC || crossFrac > MAX_CROSS_FRAC) {
+        console.log(`\nCrosses must be between ${100 * MIN_CROSS_FRAC} and ${100 * MAX_CROSS_FRAC}.\n`);
         return;
     }
 
@@ -348,8 +348,8 @@ async function main() {
     } else {
         loopsFrac /= 100;
     }
-    if (loopsFrac < MIN_LOOP_FRACTION || loopsFrac > MAX_LOOP_FRACTION) {
-        console.log(`\nLoops must be between ${100 * MIN_LOOP_FRACTION} and ${100 * MAX_LOOP_FRACTION}.\n`);
+    if (loopsFrac < MIN_LOOP_FRAC || loopsFrac > MAX_LOOP_FRAC) {
+        console.log(`\nLoops must be between ${100 * MIN_LOOP_FRAC} and ${100 * MAX_LOOP_FRAC}.\n`);
         return;
     }
 

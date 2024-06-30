@@ -1,9 +1,9 @@
-import { Maze } from '@/maze/Maze';
-import { Cell } from '@/maze/Cell';
-import { Node } from '@/maze/Node';
-import { permutations, shuffleArray } from '@/utils/arrays';
-import { solveMaze } from '@/maze/maze-solver';
-import { MazeOptions } from '@/maze/MazeOptions';
+import { Maze } from './Maze';
+import { Cell } from './Cell';
+import { Node } from './Node';
+import { permutations, shuffleArray } from '../utils/arrays';
+import { solveMaze } from './maze-solver';
+import { MazeOptions } from './MazeOptions';
 
 function assignRegion(region: number, seed: Node, stack: Node[]): Node[] {
 

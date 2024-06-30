@@ -1,5 +1,5 @@
-import { Cell } from '@/maze/Cell';
-import { MazeOptions } from '@/maze/MazeOptions';
+import { Cell } from './Cell';
+import { MazeOptions } from './MazeOptions';
 
 export class Maze {
     width: number;

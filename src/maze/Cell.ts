@@ -1,4 +1,4 @@
-import { Node } from '@/maze/Node';
+import { Node } from './Node';
 
 export class Cell {
     readonly lower = new Node(this);

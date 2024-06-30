@@ -1,7 +1,7 @@
-import { Maze } from '@/maze/Maze';
-import { Cell } from '@/maze/Cell';
-import { Node } from '@/maze/Node';
-import { permutations, shuffleArray } from '@/utils/arrays';
+import { Maze } from './Maze';
+import { Cell } from './Cell';
+import { Node } from './Node';
+import { permutations, shuffleArray } from '../utils/arrays';
 
 function findBorderNodes(maze: Maze): Set<Node> {
     const cells = maze.cells;

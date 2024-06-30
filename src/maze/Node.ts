@@ -1,4 +1,4 @@
-import { Cell } from '@/maze/Cell';
+import { Cell } from './Cell';
 
 export class Node {
     north: Node | null = null;
