@@ -1,5 +1,5 @@
 import { createCanvas, loadImage } from 'canvas';
-import { Cell } from '@/mask/Cell';
+import { Cell } from './Cell';
 
 function mergeRegions(cells: Cell[][], width: number, height: number, cell: Cell, c: Cell) {
     let sourceRegion: number;

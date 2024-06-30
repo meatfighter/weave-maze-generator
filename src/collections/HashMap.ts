@@ -1,4 +1,4 @@
-import { Hashable } from '@/collections/Hashable';
+import { Hashable } from './Hashable';
 
 export class HashMap<K extends Hashable<K>, V> {
     private map: Map<number, { key: K; value: V }[]> = new Map();
