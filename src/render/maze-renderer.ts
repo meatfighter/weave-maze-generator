@@ -302,6 +302,9 @@ async function renderAndSave(solutionPaths: Segment[][] | undefined, wallPaths: 
         }
         ctx.translate((renderOptions.paperSize.widthDots - width) / 2,
                 (renderOptions.paperSize.heightDots - height) / 2);
+        ctx.beginPath();
+        ctx.rect(0, 0, width, height);
+        ctx.clip();
         ctx.scale(scale, scale);
     } else {
         canvas = createCanvas(renderOptions.imageWidth, renderOptions.imageHeight, canvasType);
