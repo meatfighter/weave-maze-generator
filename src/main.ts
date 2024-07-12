@@ -14,7 +14,7 @@ import { extractArgs, ParamType } from '@/utils/args';
 import { PaperSize, toPaperSize } from '@/render/PaperSize';
 import {
     DEFAULT_CELL_SIZE,
-    DEFAULT_FILENAME_PREFIX,
+    DEFAULT_FILENAME_PREFIX, DEFAULT_FILENAME_SOLUTION_SUFFIX,
     DEFAULT_LINE_WIDTH_FRAC,
     DEFAULT_PASSAGE_WIDTH_FRAC,
     DEFAULT_SOLUTION,
@@ -29,7 +29,7 @@ import {
     MIN_LINE_WIDTH_FRAC,
     MIN_PASSAGE_WIDTH_FRAC, RenderOptions
 } from '@/render/RenderOptions';
-import { checkFileExists, ensureDirectoryExists } from '@/utils/files';
+import { checkFileExists, ensureDirectoryExists, validateFilename } from '@/utils/files';
 import { loadMask } from '@/mask/mask-loader';
 import { Color, toColor } from '@/render/Color';
 import { FileFormat, toFileFormat } from '@/render/FileFormat';
@@ -48,6 +48,7 @@ Output:
   -d, --destination "..."     Output directory (required)
   -f, --format                Output file format: png | svg | pdf (default: all three formats)
   -p, --prefix                Output filename prefix (default: ${DEFAULT_FILENAME_PREFIX})
+  -x, --solution-suffix       Output filename solution suffix (default: ${DEFAULT_FILENAME_SOLUTION_SUFFIX})
   -n, --no-timestamp          Disables output filename timestamp
   -N, --no-solution           Disables solution file generation
   -P, --paper-size ...        Paper size for pdf files:
@@ -74,7 +75,7 @@ Custom-shaped Mazes:
                               pixels for empty cells, with a maximum width and height of 200 pixels
 
 Passages:
-  -x, --crosses ...           Percentage of maze cells where two passages cross (default: ${DEFAULT_CROSS_PER})
+  -X, --crosses ...           Percentage of maze cells where two passages cross (default: ${DEFAULT_CROSS_PER})
   -l, --loops ...             Percentage of maze cells where a passage loops over itself (default: ${DEFAULT_LOOP_PER})
   -L, --long                  Enables long passage generation.
 
@@ -124,6 +125,11 @@ async function main() {
                 type: ParamType.STRING,
             },
             {
+                key: 'solution-suffix',
+                flags: [ '-x', '--solution-suffix' ],
+                type: ParamType.STRING,
+            },
+            {
                 key: 'no-timestamp',
                 flags: [ '-n', '--no-timestamp' ],
                 type: ParamType.NONE,
@@ -155,7 +161,7 @@ async function main() {
             },
             {
                 key: 'crosses',
-                flags: [ '-x', '--crosses' ],
+                flags: [ '-X', '--crosses' ],
                 type: ParamType.FLOAT,
             },
             {
@@ -259,8 +265,21 @@ async function main() {
     let filenamePrefix = args.get('prefix') as string | undefined;
     if (!filenamePrefix) {
         filenamePrefix = DEFAULT_FILENAME_PREFIX;
+    } else if (!validateFilename(filenamePrefix)) {
+        console.log('\nInvalid filename prefix.\n');
+        return;
     } else {
         filenamePrefix = filenamePrefix.trim();
+    }
+
+    let filenameSolutionSuffix = args.get('solution-suffix') as string | undefined;
+    if (!filenameSolutionSuffix) {
+        filenameSolutionSuffix = DEFAULT_FILENAME_SOLUTION_SUFFIX;
+    } else if (!validateFilename(filenameSolutionSuffix)) {
+        console.log('\nInvalid filename solution suffix.\n');
+        return;
+    } else {
+        filenameSolutionSuffix = filenameSolutionSuffix.trim();
     }
 
     let timestamp = args.get('no-timestamp') as boolean | undefined;
@@ -467,9 +486,9 @@ async function main() {
     }
 
     await saveMaze(generateMaze(new MazeOptions(mazeWidth, mazeHeight, loopsFrac, crossFrac, longPassages, mask)),
-            new RenderOptions(outputDirectory, fileFormat, filenamePrefix, timestamp, solution, paperSize, cellSize,
-                    imageWidth, imageHeight, roundedCorners, lineWidthFrac, passageWidthFrac, wallColor, solutionColor,
-                    backgroundColor));
+            new RenderOptions(outputDirectory, fileFormat, filenamePrefix, filenameSolutionSuffix, timestamp, solution,
+                    paperSize, cellSize, imageWidth, imageHeight, roundedCorners, lineWidthFrac, passageWidthFrac,
+                    wallColor, solutionColor, backgroundColor));
 }
 
 void main();

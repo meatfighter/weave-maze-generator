@@ -16,8 +16,6 @@ import { PaperSize } from '@/render/PaperSize';
 import { getTimestamp } from '@/utils/time';
 import { toFileExtensions } from '@/render/FileFormat';
 
-const SOLUTION_SUFFIX = '-solution';
-
 function renderPaths(ctx: CanvasRenderingContext2D, paths: Segment[][], roundedCorners: boolean) {
     ctx.beginPath();
     paths.forEach(path => {
@@ -348,7 +346,7 @@ export async function saveMaze(maze: Maze, renderOptions: RenderOptions) {
         for (const solution of renderOptions.solution ? [ false, true ] : [ false ]) {
             let filename = renderOptions.outputDirectory + path.sep + renderOptions.filenamePrefix;
             if (solution) {
-                filename += SOLUTION_SUFFIX;
+                filename += '-' + renderOptions.filenameSuffix;
             }
             if (renderOptions.timestamp) {
                 filename += '-' + timestamp;

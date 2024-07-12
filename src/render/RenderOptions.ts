@@ -3,6 +3,7 @@ import { DEFAULT_PAPER_SIZE } from '@/render/PaperSize';
 import { DEFAULT_FILE_FORMAT } from '@/render/FileFormat';
 
 export const DEFAULT_FILENAME_PREFIX = 'maze';
+export const DEFAULT_FILENAME_SOLUTION_SUFFIX = 'solution';
 
 export const DEFAULT_TIMESTAMP = true;
 export const DEFAULT_SOLUTION = true;
@@ -32,6 +33,7 @@ export class RenderOptions {
 
                 public readonly fileFormat = DEFAULT_FILE_FORMAT,
                 public readonly filenamePrefix = DEFAULT_FILENAME_PREFIX,
+                public readonly filenameSuffix = DEFAULT_FILENAME_SOLUTION_SUFFIX,
                 public readonly timestamp = DEFAULT_TIMESTAMP,
                 public readonly solution = DEFAULT_SOLUTION,
                 public readonly paperSize = DEFAULT_PAPER_SIZE, // only applicable to PDF
