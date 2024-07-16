@@ -287,23 +287,45 @@ async function renderAndSave(solutionPaths: Segment[][] | undefined, wallPaths: 
     let canvas: Canvas;
     let ctx: CanvasRenderingContext2D;
     if (canvasType === 'pdf' && renderOptions.paperSize !== PaperSize.FIT) {
-        canvas = createCanvas(renderOptions.paperSize.widthDots, renderOptions.paperSize.heightDots, 'pdf');
-        ctx = canvas.getContext('2d');
+        const width = renderOptions.imageWidth;
+        const height = renderOptions.imageHeight;
+        const { paperSize } = renderOptions;
 
-        let width = renderOptions.paperSize.printableWidthDots;
-        let scale = width / renderOptions.imageWidth;
-        let height = scale * renderOptions.imageHeight;
-        if (height > renderOptions.paperSize.printableHeightDots) {
-            height = renderOptions.paperSize.printableHeightDots;
-            scale = height / renderOptions.imageHeight;
-            width = scale * renderOptions.imageWidth;
+        let w1 = paperSize.printableWidthDots;
+        let s1 = w1 / width;
+        let h1 = s1 * height;
+        if (h1 > paperSize.printableHeightDots) {
+            h1 = paperSize.printableHeightDots;
+            s1 = h1 / height;
+            w1 = s1 * width;
         }
-        ctx.translate((renderOptions.paperSize.widthDots - width) / 2,
-                (renderOptions.paperSize.heightDots - height) / 2);
-        ctx.beginPath();
-        ctx.rect(0, 0, width, height);
-        ctx.clip();
-        ctx.scale(scale, scale);
+
+        let w2 = paperSize.printableHeightDots;
+        let s2 = w2 / width;
+        let h2 = s2 * height;
+        if (h2 > paperSize.printableWidthDots) {
+            h2 = paperSize.printableWidthDots;
+            s2 = h2 / height;
+            w2 = s2 * width;
+        }
+
+        if (w1 >= w2) {
+            canvas = createCanvas(paperSize.widthDots, paperSize.heightDots, 'pdf');
+            ctx = canvas.getContext('2d');
+            ctx.translate((paperSize.widthDots - w1) / 2, (paperSize.heightDots - h1) / 2);
+            ctx.beginPath();
+            ctx.rect(0, 0, width, height);
+            ctx.clip();
+            ctx.scale(s1, s1);
+        } else {
+            canvas = createCanvas(paperSize.heightDots, paperSize.widthDots, 'pdf');
+            ctx = canvas.getContext('2d');
+            ctx.translate((paperSize.widthDots - w2) / 2, (paperSize.heightDots - h2) / 2);
+            ctx.beginPath();
+            ctx.rect(0, 0, width, height);
+            ctx.clip();
+            ctx.scale(s2, s2);
+        }
     } else {
         canvas = createCanvas(renderOptions.imageWidth, renderOptions.imageHeight, canvasType);
         ctx = canvas.getContext('2d');
