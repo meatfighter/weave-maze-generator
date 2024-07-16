@@ -314,15 +314,15 @@ async function renderAndSave(solutionPaths: Segment[][] | undefined, wallPaths: 
             ctx = canvas.getContext('2d');
             ctx.translate((paperSize.widthDots - w1) / 2, (paperSize.heightDots - h1) / 2);
             ctx.beginPath();
-            ctx.rect(0, 0, width, height);
+            ctx.rect(0, 0, w1, h1);
             ctx.clip();
             ctx.scale(s1, s1);
         } else {
             canvas = createCanvas(paperSize.heightDots, paperSize.widthDots, 'pdf');
             ctx = canvas.getContext('2d');
-            ctx.translate((paperSize.widthDots - w2) / 2, (paperSize.heightDots - h2) / 2);
+            ctx.translate((paperSize.heightDots - w2) / 2, (paperSize.widthDots - h2) / 2);
             ctx.beginPath();
-            ctx.rect(0, 0, width, height);
+            ctx.rect(0, 0, w2, h2);
             ctx.clip();
             ctx.scale(s2, s2);
         }
