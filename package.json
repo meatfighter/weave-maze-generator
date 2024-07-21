@@ -21,7 +21,7 @@
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/canvasjs": "^1.9.11",
     "@types/node": "^20.12.2",
-    "rimraf": "^5.0.7",
+    "rimraf": "^6.0.1",
     "rollup": "^4.13.0",
     "rollup-plugin-copy": "^3.5.0",
     "shx": "^0.3.4",
@@ -29,19 +29,25 @@
     "tsx": "^4.7.1",
     "typescript": "^5.4.5"
   },
+  "dependencies": {
+    "canvas": "^2.11.2"
+  },
   "files": [
     "dist"
   ],
   "bin": {
     "weave-maze-generator": "./dist/main.bundle.js"
   },
-  "dependencies": {
-    "canvas": "^2.11.2"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/meatfighter/weave-maze-generator"
   },
-  "keywords": [],
+  "keywords": [
+    "maze",
+    "labyrinth",
+    "weave",
+    "braid",
+    "3d"
+  ],
   "homepage": "https://meatfighter.com/weave-maze-generator/"
 }

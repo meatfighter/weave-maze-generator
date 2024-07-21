@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import {
     DEFAULT_CROSS_FRAC,
     DEFAULT_LONG_PASSAGES,
@@ -485,10 +487,10 @@ async function main() {
         return;
     }
 
-    await saveMaze(generateMaze(new MazeOptions(mazeWidth, mazeHeight, loopsFrac, crossFrac, longPassages, mask)),
+    void await saveMaze(generateMaze(new MazeOptions(mazeWidth, mazeHeight, loopsFrac, crossFrac, longPassages, mask)),
             new RenderOptions(outputDirectory, fileFormat, filenamePrefix, filenameSolutionSuffix, timestamp, solution,
                     paperSize, cellSize, imageWidth, imageHeight, roundedCorners, lineWidthFrac, passageWidthFrac,
                     wallColor, solutionColor, backgroundColor));
 }
 
-void main();
+void await main();
