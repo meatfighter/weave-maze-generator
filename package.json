@@ -1,9 +1,10 @@
 {
   "name": "weave-maze-generator",
   "version": "1.0.0",
+  "description": "A generator of weave mazes.",
   "type": "module",
   "module": "./dist/main.bundle.js",
-  "private": true,
+  "private": false,
   "scripts": {
     "clean": "rimraf ./dist ./bin",
     "dev": "npx tsx src/main.ts",
