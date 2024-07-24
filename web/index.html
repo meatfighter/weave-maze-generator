@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0C0C0C">
+    <meta name="date" content="2024-07-17">
+
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" href="./icons/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="./icons/favicon.ico" sizes="any" type="image/x-icon">
+    <link rel="shortcut icon" href="./icons/favicon.ico" sizes="any" type="image/x-icon">
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+    <link rel="mask-icon" href="./icons/mask-icon.svg" color="#000000">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro&family=Open+Sans&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    <link rel="stylesheet" href="./styles/index.css?v=2024-07-17" type="text/css">
+
+    <title>Weave Maze Generator</title>
+
+    <base target="_blank">
+</head>
+<body>
+<p class="centered title"><img class="inline" src="./images/white-logo.svg" alt="WM" style="width: 100px; height: auto;"> Weave Maze Generator</p>
+
+<p id="index" class="centered" style="margin-top: -30px;">[ <a href="#about" target="_self">About</a> | <a href="#examples" target="_self">Examples</a> | <a href="#install" target="_self">Install</a> | <a href="#uninstall" target="_self">Uninstall</a> | <a href="#algorithm" target="_self">Algorithm</a> | <a href="#acknowledgements" target="_self">Acknowledgements</a> | <a href="#license" target="_self">License</a> ]</p>
+
+<h1 id="about"><a class="header" href="#about" target="_self">About</a></h1>
+
+<p>Weave Maze Generator is an app that creates visually mesmerizing mazes, featuring twisty passageways that intertwine over and under each other. It provides options that enable the user to customize the chaos and the style of the vast network of bridges and tunnels. Accessible from both the browser and the command-line, it offers versatile ways to manifest and explore deviously complicated labyrinths.</p>
+
+<button class="button" id="launch-browser-version-button">Launch Browser Version</button>
+
+<h1 id="examples"><a class="header" href="#examples" target="_self">Examples</a></h1>
+
+<p>The browser version and the command-line version support the same set of options. In the left sidebar of the browser version, modifying any options above the horizontal line generates a new maze, while adjusting any options below the horizontal line redraws the existing maze in a new style. In the command-line version, the <code>-h</code> flag outputs a message that details all the options demonstrated below.</p>
+
+<p>The command-line version requires an output directory path, specified with the <code>-d</code> flag:</p>
+
+<pre class="code">
+$ weave-maze-generator -d "."
+$ ls
+maze-20240721-110502.pdf  maze-20240721-110502.svg           maze-solution-20240721-110502.png
+maze-20240721-110502.png  maze-solution-20240721-110502.pdf  maze-solution-20240721-110502.svg
+</pre>
+
+<p>It generates six files: three copies of the maze (in PDF, PNG, and SVG formats) and three copies of the maze solution (also in PDF, PNG, and SVG formats).</p>
+
+<p>For this demonstration, we will limit the output to SVG files using the <code>-f</code> flag. By default, the background of the vector file formats (SVG and PDF) is transparent. We will change it with the <code>-b</code> flag, providing the hex color code for solid white. Finally, we will set the maze width and height using the <code>-w</code> and <code>-h</code> flags, respectively, to 20&times;20 cells:</p>
+
+<pre class="code">
+$ weave-maze-generator -d "." -f svg -b FFFFFF -w 20 -h 20
+$ ls
+maze-20240721-114042.svg  maze-solution-20240721-114042.svg
+</pre>
+
+<p>Here is the maze:</p>
+
+<p><img class="centered shrink" id="./images/example-1.svg" src="./images/example-1.svg" alt="Example maze 1"></p>
+
+<p>And here is the solution:</p>
+
+<p><img class="centered shrink" id="./images/example-solution-1.svg" src="./images/example-solution-1.svg" alt="Example maze solution 1"></p>
+
+<p>The default loop factor is 5%. Let&rsquo;s raise it to 50% with the <code>-l</code> flag:</p>
+
+<pre class="code">
+$ weave-maze-generator -d "." -f svg -b FFFFFF -w 20 -h 20 -l 50
+</pre>
+
+<p>Here is 50% loopiness:</p>
+
+<p><img class="centered shrink" id="./images/loopy-solution-1.svg" src="./images/loopy-solution-1.svg" alt="Loopy example solution 1"></p>
+
+<p>Here is 100% loopiness:</p>
+
+<p><img class="centered shrink" id="./images/loopy-solution-2.svg" src="./images/loopy-solution-2.svg" alt="Loopy example solution 2"></p>
+
+<p>The default cross factor is 25%. Let&rsquo;s raise it to 50% with the <code>-X</code> flag, while leaving loopiness alone:</p>
+
+<pre class="code">
+$ weave-maze-generator -d "." -f svg -b FFFFFF -w 20 -h 20 -X 50
+</pre>
+
+<p>Here is 50% crossiness:</p>
+
+<p><img class="centered shrink" id="./images/crosses-solution-1.svg" src="./images/crosses-solution-1.svg" alt="Crosses example solution 1"></p>
+
+<p>Here is 100% crossiness:</p>
+
+<p><img class="centered shrink" id="./images/crosses-solution-2.svg" src="./images/crosses-solution-2.svg" alt="Crosses example solution 2"></p>
+
+<p>By default, the app generates mazes with curved walls. Let&rsquo;s straighten them out with the <code>-s</code> flag:</p>
+
+<pre class="code">
+$ weave-maze-generator -d "." -f svg -b FFFFFF -w 20 -h 20 -s
+</pre>
+
+<p>Here is a maze with straight walls:</p>
+
+<p><img class="centered shrink" id="./images/square-solution-1.svg" src="./images/square-solution-1.svg" alt="Square example 1"></p>
+
+<p>Let&rsquo;s create a traditional maze by setting both the loop and cross factors to 0%:</p>
+
+<pre class="code">
+$ weave-maze-generator -d "." -f svg -b FFFFFF -w 20 -h 20 -s -l 0 -X 0
+</pre>
+
+<p>Here is the result:</p>
+
+<p><img class="centered shrink" id="./images/traditional-solution.svg" src="./images/traditional-solution.svg" alt="Traditional example"></p>
+
+<p>Let&rsquo;s make the passages long with the <code>-L</code> flag:</p>
+
+<pre class="code">
+$ weave-maze-generator -d "." -f svg -b FFFFFF -w 20 -h 20 -s -l 0 -X 0 -L
+</pre>
+
+<p>Here is the long passage maze:</p>
+
+<p><img class="centered shrink" id="./images/long-solution.svg" src="./images/long-solution.svg" alt="Long passage example"></p>
+
+<p>Let&rsquo;s make the passages narrow with the <code>-g</code> flag:</p>
+
+<pre class="code">
+$ weave-maze-generator -d "." -f svg -b FFFFFF -w 20 -h 20 -s -l 0 -X 0 -L -g 30
+</pre>
+
+<p>Here is the narrow passage maze:</p>
+
+<p><img class="centered shrink" id="./images/narrow-solution.svg" src="./images/narrow-solution.svg" alt="Narrow passage example"></p>
+
+<p>Finally, let&rsquo;s define the shape of the maze using the following mask image. The app accepts an image containing white pixels for maze cells and black or transparent pixels for empty cells. If the mask contains multiple disjoint white regions, the app will connect them.</p>
+
+<p><img class="centered shrink" id="./images/mask.png" src="./images/mask.png" alt="Mask example"></p>
+
+<p>The mask image is provided with the <code>-m</code> flag:</p>
+
+<pre class="code">
+$ weave-maze-generator -d "." -f svg -b FFFFFF -m "mask.png"
+</pre>
+
+<p>Here is the &ldquo;MAZE&rdquo; maze:</p>
+
+<p><img class="centered shrink" id="./images/mask-solution.svg" src="./images/mask-solution.svg" alt="Mask solution example"></p>
+
+
+<h1 id="install"><a class="header" href="#install" target="_self">Install</a></h1>
+
+<p>The command-line version of Weave Maze Generator is a Node.js application. If you don't have Node.js installed on your system, follow the steps described <a href="https://nodejs.org/en/learn/getting-started/how-to-install-nodejs">here</a>. On macOS and Linux, ensure that <code>npm</code> is set up for global installs without using the root user by following the steps detailed <a href="https://stackoverflow.com/questions/18088372/how-to-npm-install-global-not-as-root">here</a> and <a href="https://medium.com/@ExplosionPills/dont-use-sudo-with-npm-5711d2726aa3">here</a>.</p>
+
+<p>To install, issue this command:</p>
+
+<div class="code-container">
+    <pre class="code">npm install -g weave-maze-generator</pre>
+    <button class="copy-btn"><span class="material-symbols-outlined">content_copy</span></button>
+</div>
+
+
+<h1 id="uninstall"><a class="header" href="#uninstall" target="_self">Uninstall</a></h1>
+
+<p>To uninstall, issue this command:</p>
+
+<div class="code-container">
+    <pre class="code">npm uninstall -g weave-maze-generator</pre>
+    <button class="copy-btn"><span class="material-symbols-outlined">content_copy</span></button>
+</div>
+
+
+<h1 id="algorithm"><a class="header" href="#algorithm" target="_self">Algorithm</a></h1>
+
+<p>The weave maze generation algorithm is detailed in the following sections.</p>
+
+<h2 id="algorithm.grid"><a class="header" href="#algorithm.grid" target="_self">Grid</a></h2>
+
+<p>If the user explicitly specifies the maze dimensions, the algorithm allocates a grid with those dimensions, consisting of square cells. Then it adds a node to each cell:</p>
+
+<div class="wide-container">
+    <img class="centered" id="./images/grid-with-nodes.svg" src="./images/grid-with-nodes.svg" alt="Grid with nodes">
+</div>
+
+<p>Alternatively, if the user provides a mask image, the algorithm scans it for white pixels. Upon finding one, it performs a flood fill to identify a fully connected white region. It continues that process, potentially discovering multiple disjoint regions, until all pixels have been inspected. Then the algorithm connects the regions with minimal paths found using <a href="https://en.wikipedia.org/wiki/Dijkstra's_algorithm">Dijkstra&rsquo;s algorithm</a>:</p>
+
+<p><img class="centered shrink" id="./images/mask-before-and-after.png" src="./images/mask-before-and-after.png" alt="Mask before and after"></p>
+
+<p>The algorithm sizes the grid to the mask image dimensions. Then it adds nodes only to cells corresponding to the amended image&rsquo;s white pixels:</p>
+
+<div class="wide-container">
+    <img class="centered" id="./images/grid-with-mask.svg" src="./images/grid-with-mask.svg" alt="Grid with mask" style="width: 544px; height: auto;">
+</div>
+
+
+<h2 id="algorithm.crosses"><a class="header" href="#algorithm.crosses" target="_self">Crosses</a></h2>
+
+<p>A cross is a structure that bridges a passage over another passage. It consists of four edges and a node that &ldquo;hovers&rdquo; above the grid plane. An example appears in the following image. The solid green circle represents the hovering node. It enables the north-south passage to bridge over the east-west passage.</p>
+
+<div class="wide-container">
+    <img class="centered" id="./images/cross-north-south-over-east-west.svg" src="./images/cross-north-south-over-east-west.svg" alt="Cross (north-south over east-west)">
+</div>
+
+<p>In the variation below, the hovering node permits the east-west passage to bridge over the north-south passage.</p>
+
+<div class="wide-container">
+    <img class="centered" id="./images/cross-east-west-over-north-south.svg" src="./images/cross-east-west-over-north-south.svg" alt="Cross (east-west over north-south)">
+</div>
+
+<p>The algorithm randomly places crosses until the percentage of cells containing them reaches the user-specified threshold, or until the algorithm has attempted to modify every cell in the grid. The algorithm can add a cross to a cell if the following conditions are met:</p>
+
+<ol>
+<li>The cell contains exactly one node.</li>
+
+<li>The four adjacent cells are within the grid bounds, and they each contain at least one node.</li>
+
+<li>Adding the cross does not produce a cyclic graph.</li>
+</ol>
+
+<p>Regarding the third condition, the algorithm ultimately constructs a random spanning tree, an undirected graph without cycles, where any two nodes are connected by exactly one path. After the algorithm adds a cross, it checks for cycles using a flood fill. If a cycle is detected, it removes the cross.</p>
+
+<p>When adding a cross, the algorithm accounts for existing edges. In the image below, the algorithm linked two hovering nodes because the adjacent crosses are both north-south-over-east-west type.</p>
+
+<div class="wide-container">
+    <img class="centered" id="./images/two-crosses-1.svg" src="./images/two-crosses-1.svg" alt="Adjacent crosses with both north-south">
+</div>
+
+<p>However, in the following image, the algorithm did not link the hovering nodes since the adjacent crosses are of different types.</p>
+
+<div class="wide-container">
+    <img class="centered" id="./images/two-crosses-2.svg" src="./images/two-crosses-2.svg" alt="Adjacent crosses of different types">
+</div>
+
+
+<h2 id="algorithm.loops"><a class="header" href="#algorithm.loops" target="_self">Loops</a></h2>
+
+<p>A loop is a structure that bridges a passage over itself. It consists of a cross and two edges:</p>
+
+<div class="wide-container">
+    <img class="centered" id="./images/loop.svg" src="./images/loop.svg" alt="Loop">
+</div>
+
+<p>Since there are two cross types and four ways to add the two edges, there are a total of eight loop types.</p>
+
+<p>Prior to adding pure crosses, the algorithm randomly places loops until the percentage of cells containing them reaches the user-specified threshold, or until the algorithm has attempted to modify every cell in the grid. The algorithm can add a loop to a cell if the following conditions are met:</p>
+
+<ol>
+<li>The cell contains exactly one node.</li>
+
+<li>The four adjacent cells and the one diagonal cell are within the grid bounds, and they each contain at least one node.</li>
+
+<li>Adding the loop does not produce a cyclic graph.</li>
+</ol>
+
+<p>As with pure crosses, when the algorithm adds a loop, it considers existing edges when linking nodes together. For instance, the following image depicts adjacent loops.</p>
+
+<div class="wide-container">
+    <img class="centered" id="./images/two-loops.svg" src="./images/two-loops.svg" alt="Adjacent loops">
+</div>
+
+<p>As the algorithm constructs a random spanning tree&mdash;a process detailed in the next section&mdash;it may inadvertently transform pure crosses into loops, potentially large ones. Or it may add multiple branches to a loop, making it unrecognizable.</p>
+
+
+<h2 id="algorithm.random-spanning-tree"><a class="header" href="#algorithm.random-spanning-tree" target="_self">Random Spanning Tree</a></h2>
+
+<p>The algorithm creates a random spanning tree by linking nodes of adjacent cells until there is a path between every pair of nodes. If the user requests long passages, the algorithm employs <a href="https://en.wikipedia.org/wiki/Maze_generation_algorithm#Randomized_depth-first_search">randomized depth-first search</a>, which produces a tree with a low branching factor:</p>
+
+<div class="wide-container">
+    <img class="centered" id="./images/spanning-tree-long.svg" src="./images/spanning-tree-long.svg" alt="Spanning tree with long passages">
+</div>
+
+<p>Otherwise, it uses <a href="https://en.wikipedia.org/wiki/Maze_generation_algorithm#Iterative_randomized_Kruskal's_algorithm_(with_sets)">randomized Kruskal&rsquo;s algorithm</a>, which produces a tree with a high branching factor:</p>
+
+<div class="wide-container">
+    <img class="centered" id="./images/spanning-tree-short.svg" src="./images/spanning-tree-short.svg" alt="Spanning tree with short passages">
+</div>
+
+<p>Unbiased maze generation algorithms, such as <a href="https://en.wikipedia.org/wiki/Maze_generation_algorithm#Wilson's_algorithm">Wilson&rsquo;s algorithm</a> and the <a href="https://en.wikipedia.org/wiki/Maze_generation_algorithm#Aldous-Broder_algorithm">Aldous-Broder algorithm</a>, are impractically slow, especially for large mazes. And while hybrid algorithms that allow the user to tune the branching factor do exist, experimentation revealed the aesthetic advantages of such tuneability are negligible.</p>
+
+<p>The algorithm measures the path lengths between all pairs of edge nodes (those with fewer than four adjacent neighbors) by repeatedly applying a flood fill. It converts the pair separated by the longest path into the terminal nodes:</p>
+
+<div class="wide-container">
+    <img class="centered" id="./images/spanning-tree-terminals.svg" src="./images/spanning-tree-terminals.svg" alt="Spanning tree with terminals">
+</div>
+
+<p>That process also provides the maze solution path.</p>
+
+
+<h2 id="algorithm.rendering"><a class="header" href="#algorithm.rendering" target="_self">Rendering</a></h2>
+
+<p>To render the maze, the algorithm selects and draws one of eighteen tiles for each cell, determined by the edges connected to its nodes:</p>
+
+<div class="wide-container">
+    <img class="centered" id="./images/straight-walls.svg" src="./images/straight-walls.svg" alt="Spanning tree and straight walls">
+</div>
+
+<p>If the user requests curved walls, the algorithm uses a tile set with 90&deg; corners replaced by 90&deg; circular arcs:</p>
+
+<div class="wide-container">
+    <img class="centered" id="./images/curved-walls.svg" src="./images/curved-walls.svg" alt="Spanning tree and curved walls">
+</div>
+
+<p>The same applies to the solution path:</p>
+
+<div class="wide-container">
+    <img class="centered" id="./images/solution.svg" src="./images/solution.svg" alt="Maze with solution">
+</div>
+
+<p>For the vector file formats (SVG and PDF), the algorithm follows the arcs and line segments across the grid and joins them into contiguous paths for optimal rendering and minimal file sizes.</p>
+
+
+<h2 id="algorithm.source"><a class="header" href="#algorithm.source" target="_self">Source</a></h2>
+
+<p>The source is available from the following repositories:</p>
+
+<ul>
+<li><a href="https://github.com/meatfighter/weave-maze-generator">Command-line version</a></li>
+<li><a href="https://github.com/meatfighter/quasar-weave-maze-generator">Browser version</a></li>
+</ul>
+
+
+<h1 id="acknowledgements"><a class="header" href="#acknowledgements" target="_self">Acknowledgements</a></h1>
+
+<p>This project drew inspiration from David Bau&rsquo;s blog entry <a href="http://davidbau.com/archives/2006/10/10/printable_mazes.html">&ldquo;Printable Mazes&rdquo;</a> from October 10, 2006, which describes his first-place winning submission to the 1993 Obfuscated PostScript Contest and provides an online PDF weave maze generator.</p>
+
+<p>Additional insight was gained from Jamis Buck&rsquo;s blog entry <a href="https://weblog.jamisbuck.org/2011/3/4/maze-generation-weave-mazes.html">&ldquo;Maze Generation: Weave Mazes&rdquo;</a> from March 4, 2011. Chapter 9, &ldquo;Braiding and Weaving Your Mazes,&rdquo; from his book <a href="http://www.mazesforprogrammers.com/">&ldquo;Mazes for Programmers: Code Your Own Twisty Little Passages,&rdquo;</a> published by The Pragmatic Programmers, LLC, in 2015, also provided useful information.</p>
+
+
+<h1 id="license"><a class="header" href="#license" target="_self">License</a></h1>
+
+<p>Anything generated by Weave Maze Generator (both the browser and command-line versions) is covered by the <a href="https://creativecommons.org/public-domain/cc0/">Creative Commons Zero (CC0) license</a>. You are free to use the output for any purpose, whether commercial, personal, or otherwise. No attribution is required, though it would be appreciated if you choose to do so. Feel free to download, modify, distribute, and use the generated output as you wish.</p>
+
+<hr>
+<footer>
+    <div class="left">
+        &copy; 2024 meatfighter.com<br>This content is licensed under <a href="http://creativecommons.org/licenses/by-sa/4.0/?ref=chooser-v1" rel="license noopener noreferrer" style="display:inline-block;">CC BY-SA 4.0<img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg?ref=chooser-v1" alt="CC"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg?ref=chooser-v1" alt="BY"><img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg?ref=chooser-v1" alt="SA"></a>
+    </div>
+    <div class="right">
+        <a href="https://meatfighter.com" target="_self">Home</a>
+    </div>
+</footer>
+
+<script src="./scripts/index.js">
+</script>
+</body>
+</html>
